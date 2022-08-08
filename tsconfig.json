@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "strict": true,
+        "resolveJsonModule": true,
+        "outDir": "dist",
+        "emitDeclarationOnly": true,
+        "skipLibCheck": true
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules/", "dist/"]
+}

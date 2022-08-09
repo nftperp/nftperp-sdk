@@ -1,5 +1,14 @@
 import { constants, Contract, Wallet } from "ethers";
-import { Asset, Decimal, Direction, OpenPositionParams, Side } from "./types/types";
+import {
+    Asset,
+    ClosePositionParams,
+    Decimal,
+    Direction,
+    DirectionOfAsset,
+    OpenPositionParams,
+    Position,
+    Side,
+} from "./types/types";
 import { Amm, ClearingHouse, ClearingHouseViewer, ERC20, InsuranceFund } from "./typechain-types";
 import abis from "./abis";
 import Big from "big.js";
@@ -37,14 +46,19 @@ export class NFTPERP {
      * @returns tx hash
      */
     public async openPosition(params: OpenPositionParams): Promise<string> {
-        const { asset, direction, margin, leverage } = params;
+        const { asset, direction, margin, leverage, slippagePercent } = params;
         const notional = toBig(margin).mul(leverage);
         const side = this._getSide(direction);
         const fees = await this._calcFee(asset, notional, side);
         const totalCost = toWei(margin).add(fees);
         await this._checkBalance(totalCost);
         await this._checkAllowance(totalCost);
-        const slippageAmount = await this._getSlippageBaseAssetAmount(params);
+        const slippageAmount = await this._getSlippageBaseAssetAmount(
+            asset,
+            side,
+            notional,
+            slippagePercent
+        );
 
         const hash = await this._openPosition(
             getAssetAddress(asset),
@@ -56,8 +70,42 @@ export class NFTPERP {
         return hash;
     }
 
+    public async closePosition(params: ClosePositionParams): Promise<string> {
+        const { asset, slippagePercent } = params;
+        const { size } = await this._getPosition(asset, this._wallet.address);
+        const side = size.gt(0) ? Side.SELL : Side.BUY;
+        const quoteAssetOut = await this._getQuoteAssetOut(
+            asset,
+            side === Side.SELL ? DirectionOfAsset.ADD_TO_AMM : DirectionOfAsset.REMOVE_FROM_AMM,
+            size
+        );
+        const fees = await this._calcFee(asset, quoteAssetOut, side);
+        await this._checkAllowance(fees);
+        const slippageAmount = await this._getSlippageQuoteAssetAmount(
+            asset,
+            side,
+            size,
+            slippagePercent
+        );
+
+        const hash = this._closePosition(getAssetAddress(asset), toDecimal(slippageAmount));
+        return hash;
+    }
+
+    private async _getPosition(asset: Asset, trader: string): Promise<Position> {
+        const { size, margin, openNotional } = await this._ch.getPosition(
+            getAssetAddress(asset),
+            trader
+        );
+        return {
+            size: fromDecimal(size),
+            margin: fromDecimal(margin),
+            openNotional: fromDecimal(openNotional),
+        };
+    }
+
     private async _calcFee(asset: Asset, notional: Big, side: Side) {
-        const collectionInstance = this._getCollectionInstance(asset);
+        const collectionInstance = this._getAssetInstance(asset);
         const fees = await collectionInstance.calcFee(toDecimal(toWei(notional)), side);
         return fromDecimal(fees[0]).add(fromDecimal(fees[1]));
     }
@@ -71,25 +119,64 @@ export class NFTPERP {
         await tx.wait();
     }
 
-    private async _getSlippageBaseAssetAmount(params: OpenPositionParams): Promise<Big> {
-        const { asset, direction, margin, leverage, slippagePercent } = params;
+    private async _getBaseAssetOut(
+        asset: Asset,
+        dir: DirectionOfAsset,
+        notional: Big
+    ): Promise<Big> {
+        const collectionInstance = this._getAssetInstance(asset);
+        const baseAssetOut = await collectionInstance.getInputPrice(
+            dir,
+            toDecimal(toWei(notional))
+        );
+        return fromDecimal(baseAssetOut);
+    }
+
+    private async _getQuoteAssetOut(asset: Asset, dir: DirectionOfAsset, size: Big): Promise<Big> {
+        const collectionInstance = this._getAssetInstance(asset);
+        const quoteAssetOut = await collectionInstance.getOutputPrice(dir, toDecimal(size));
+        return fromDecimal(quoteAssetOut);
+    }
+
+    private async _getSlippageBaseAssetAmount(
+        asset: Asset,
+        side: Side,
+        notional: Big,
+        slippagePercent?: number
+    ): Promise<Big> {
         if (!slippagePercent) {
             return toBig(0);
         }
-        const collectionInstance = this._getCollectionInstance(asset);
-        const side = this._getSide(direction);
-        const baseAssetOut = await collectionInstance.getInputPrice(
-            side,
-            toDecimal(toWei(toBig(margin).mul(leverage)))
-        );
+        const dir =
+            side === Side.BUY ? DirectionOfAsset.ADD_TO_AMM : DirectionOfAsset.REMOVE_FROM_AMM;
+        const baseAssetOut = await this._getBaseAssetOut(asset, dir, notional);
         const slippageFraction = Big(slippagePercent).div(100);
         if (side === Side.BUY) {
-            return fromDecimal(baseAssetOut).mul(toBig(1).sub(slippageFraction)).round(0, 0);
+            return baseAssetOut.mul(toBig(1).sub(slippageFraction)).round(0, 0);
         }
-        return fromDecimal(baseAssetOut).mul(toBig(1).add(slippageFraction)).round(0, 1);
+        return baseAssetOut.mul(toBig(1).add(slippageFraction)).round(0, 1);
     }
 
-    private _getCollectionInstance(asset: Asset): Amm {
+    private async _getSlippageQuoteAssetAmount(
+        asset: Asset,
+        side: Side,
+        size: Big,
+        slippagePercent?: number
+    ): Promise<Big> {
+        if (!slippagePercent) {
+            return toBig(0);
+        }
+        const dir =
+            side === Side.SELL ? DirectionOfAsset.ADD_TO_AMM : DirectionOfAsset.REMOVE_FROM_AMM;
+        const quoteAssetOut = await this._getQuoteAssetOut(asset, dir, size);
+        const slippageFraction = Big(slippagePercent).div(100);
+        if (side === Side.SELL) {
+            return quoteAssetOut.mul(toBig(1).sub(slippageFraction)).round(0, 0);
+        }
+        return quoteAssetOut.mul(toBig(1).add(slippageFraction)).round(0, 1);
+    }
+
+    private _getAssetInstance(asset: Asset): Amm {
         return new Contract(getAssetAddress(asset), abis.ammAbi, this._wallet) as Amm;
     }
 
@@ -112,13 +199,26 @@ export class NFTPERP {
     }
 
     private async _openPosition(
-        ammAddress: string,
+        amm: string,
         side: Side,
         margin: Decimal,
         leverage: Decimal,
-        slippage: Decimal
+        baseAssetAmountLimit: Decimal
     ): Promise<string> {
-        const tx = await this._ch.openPosition(ammAddress, side, margin, leverage, slippage, false);
+        const tx = await this._ch.openPosition(
+            amm,
+            side,
+            margin,
+            leverage,
+            baseAssetAmountLimit,
+            false
+        );
+        await tx.wait();
+        return tx.hash;
+    }
+
+    private async _closePosition(amm: string, quoteAssetAmountLimit: Decimal) {
+        const tx = await this._ch.closePosition(amm, quoteAssetAmountLimit, false);
         await tx.wait();
         return tx.hash;
     }

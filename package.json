@@ -6,7 +6,7 @@
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node dist/index.js",
         "prepare": "husky install",
         "typechain": "typechain --target ethers-v5 --out-dir src/typechain-types 'src/abis/**/*.json'"
     },
@@ -22,10 +22,12 @@
         "node": ">=14"
     },
     "dependencies": {
+        "big.js": "^6.2.1",
         "ethers": "^5.6.9"
     },
     "devDependencies": {
         "@typechain/ethers-v5": "^10.1.0",
+        "@types/big.js": "^6.1.5",
         "@typescript-eslint/eslint-plugin": "^5.32.0",
         "@typescript-eslint/parser": "^5.32.0",
         "eslint": "^8.21.0",

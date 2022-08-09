@@ -6,7 +6,6 @@
         "strict": true,
         "resolveJsonModule": true,
         "outDir": "dist",
-        "emitDeclarationOnly": true,
         "declaration": true,
         "skipLibCheck": true
     },

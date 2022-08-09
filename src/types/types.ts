@@ -41,9 +41,12 @@ export interface ClosePositionParams {
     slippagePercent?: number;
 }
 
-/**
- *
- */
+export interface PartialCloseParams {
+    asset: Asset;
+    partialClosePercent: number;
+    slippagePercent: number;
+}
+
 export interface Position {
     size: Big;
     margin: Big;

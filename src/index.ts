@@ -6,6 +6,7 @@ import {
     Direction,
     DirectionOfAsset,
     OpenPositionParams,
+    PartialCloseParams,
     Position,
     Side,
 } from "./types/types";
@@ -89,6 +90,35 @@ export class NFTPERP {
         );
 
         const hash = this._closePosition(getAssetAddress(asset), toDecimal(slippageAmount));
+        return hash;
+    }
+
+    public async partialClose(params: PartialCloseParams) {
+        const { asset, partialClosePercent, slippagePercent } = params;
+        const { size } = await this._getPosition(asset, this._wallet.address);
+        const side = size.gt(0) ? Side.SELL : Side.BUY;
+        const partialCloseFraction = toBig(partialClosePercent).div(100);
+        const sizeToClose = size.mul(partialCloseFraction);
+        const quoteAssetOut = await this._getQuoteAssetOut(
+            asset,
+            side === Side.SELL ? DirectionOfAsset.ADD_TO_AMM : DirectionOfAsset.REMOVE_FROM_AMM,
+            sizeToClose
+        );
+        const fees = await this._calcFee(asset, quoteAssetOut, side);
+        await this._checkBalance(fees);
+        await this._checkAllowance(fees);
+        const slippageAmount = await this._getSlippageQuoteAssetAmount(
+            asset,
+            side,
+            sizeToClose,
+            slippagePercent
+        );
+
+        const hash = await this._partialClose(
+            getAssetAddress(asset),
+            toDecimal(toWei(partialCloseFraction)),
+            toDecimal(slippageAmount)
+        );
         return hash;
     }
 
@@ -219,6 +249,21 @@ export class NFTPERP {
 
     private async _closePosition(amm: string, quoteAssetAmountLimit: Decimal) {
         const tx = await this._ch.closePosition(amm, quoteAssetAmountLimit, false);
+        await tx.wait();
+        return tx.hash;
+    }
+
+    private async _partialClose(
+        amm: string,
+        partialCloseRatio: Decimal,
+        quoteAssetAmountLimit: Decimal
+    ): Promise<string> {
+        const tx = await this._ch.partialClose(
+            amm,
+            partialCloseRatio,
+            quoteAssetAmountLimit,
+            false
+        );
         await tx.wait();
         return tx.hash;
     }

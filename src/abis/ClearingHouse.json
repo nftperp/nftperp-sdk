@@ -1,0 +1,1293 @@
+[
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "bool",
+                "name": "isProvider",
+                "type": "bool"
+            }
+        ],
+        "name": "BackstopLiquidityProviderChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "bot",
+                "type": "address"
+            }
+        ],
+        "name": "BotStatusSet",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "sender",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "int256",
+                "name": "amount",
+                "type": "int256"
+            },
+            {
+                "indexed": false,
+                "internalType": "int256",
+                "name": "fundingPayment",
+                "type": "int256"
+            }
+        ],
+        "name": "MarginChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "previousOwner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "Paused",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "trader",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "margin",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "positionNotional",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "int256",
+                "name": "exchangedPositionSize",
+                "type": "int256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "fee",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "int256",
+                "name": "positionSizeAfter",
+                "type": "int256"
+            },
+            {
+                "indexed": false,
+                "internalType": "int256",
+                "name": "realizedPnl",
+                "type": "int256"
+            },
+            {
+                "indexed": false,
+                "internalType": "int256",
+                "name": "unrealizedPnlAfter",
+                "type": "int256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "badDebt",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "liquidationPenalty",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "spotPrice",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "int256",
+                "name": "fundingPayment",
+                "type": "int256"
+            }
+        ],
+        "name": "PositionChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "trader",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "positionNotional",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "positionSize",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "liquidationFee",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "liquidator",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "badDebt",
+                "type": "uint256"
+            }
+        ],
+        "name": "PositionLiquidated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "referralCode",
+                "type": "bytes32"
+            }
+        ],
+        "name": "ReferredPositionChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "indexed": false,
+                "internalType": "struct Decimal.decimal",
+                "name": "quoteAssetReserve",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "indexed": false,
+                "internalType": "struct Decimal.decimal",
+                "name": "baseAssetReserve",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "d",
+                        "type": "int256"
+                    }
+                ],
+                "indexed": false,
+                "internalType": "struct SignedDecimal.signedDecimal",
+                "name": "pnl",
+                "type": "tuple"
+            }
+        ],
+        "name": "Repeg",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "blockNumber",
+                "type": "uint256"
+            }
+        ],
+        "name": "RestrictionModeEntered",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "Unpaused",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_addedMargin",
+                "type": "tuple"
+            }
+        ],
+        "name": "addMargin",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "backstopLiquidityProviderMap",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "k",
+                "type": "tuple"
+            }
+        ],
+        "name": "calculateAmmPnlK",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "d",
+                        "type": "int256"
+                    }
+                ],
+                "internalType": "struct SignedDecimal.signedDecimal",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "d",
+                        "type": "int256"
+                    }
+                ],
+                "internalType": "struct SignedDecimal.signedDecimal",
+                "name": "p2",
+                "type": "tuple"
+            }
+        ],
+        "name": "calculateAmmPnlY",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "d",
+                        "type": "int256"
+                    }
+                ],
+                "internalType": "struct SignedDecimal.signedDecimal",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_quoteAssetAmountLimit",
+                "type": "tuple"
+            },
+            {
+                "internalType": "bool",
+                "name": "_feesInFeeToken",
+                "type": "bool"
+            }
+        ],
+        "name": "closePosition",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "feePool",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "feeToken",
+        "outputs": [
+            {
+                "internalType": "contract IERC20",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "feeTokenStatus",
+        "outputs": [
+            {
+                "internalType": "enum ClearingHouse.FeeTokenStatus",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            }
+        ],
+        "name": "getLatestCumulativePremiumFraction",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "d",
+                        "type": "int256"
+                    }
+                ],
+                "internalType": "struct SignedDecimal.signedDecimal",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_trader",
+                "type": "address"
+            }
+        ],
+        "name": "getMarginRatio",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "d",
+                        "type": "int256"
+                    }
+                ],
+                "internalType": "struct SignedDecimal.signedDecimal",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_trader",
+                "type": "address"
+            }
+        ],
+        "name": "getPosition",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "int256",
+                                "name": "d",
+                                "type": "int256"
+                            }
+                        ],
+                        "internalType": "struct SignedDecimal.signedDecimal",
+                        "name": "size",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "d",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct Decimal.decimal",
+                        "name": "margin",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "d",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct Decimal.decimal",
+                        "name": "openNotional",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "int256",
+                                "name": "d",
+                                "type": "int256"
+                            }
+                        ],
+                        "internalType": "struct SignedDecimal.signedDecimal",
+                        "name": "lastUpdatedCumulativePremiumFraction",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "blockNumber",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct ClearingHouse.Position",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_trader",
+                "type": "address"
+            },
+            {
+                "internalType": "enum ClearingHouse.PnlCalcOption",
+                "name": "_pnlCalcOption",
+                "type": "uint8"
+            }
+        ],
+        "name": "getPositionNotionalAndUnrealizedPnl",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "positionNotional",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "int256",
+                        "name": "d",
+                        "type": "int256"
+                    }
+                ],
+                "internalType": "struct SignedDecimal.signedDecimal",
+                "name": "unrealizedPnl",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_trader",
+                "type": "address"
+            }
+        ],
+        "name": "getUnadjustedPosition",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "components": [
+                            {
+                                "internalType": "int256",
+                                "name": "d",
+                                "type": "int256"
+                            }
+                        ],
+                        "internalType": "struct SignedDecimal.signedDecimal",
+                        "name": "size",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "d",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct Decimal.decimal",
+                        "name": "margin",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "d",
+                                "type": "uint256"
+                            }
+                        ],
+                        "internalType": "struct Decimal.decimal",
+                        "name": "openNotional",
+                        "type": "tuple"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "int256",
+                                "name": "d",
+                                "type": "int256"
+                            }
+                        ],
+                        "internalType": "struct SignedDecimal.signedDecimal",
+                        "name": "lastUpdatedCumulativePremiumFraction",
+                        "type": "tuple"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "blockNumber",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct ClearingHouse.Position",
+                "name": "position",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IInsuranceFund",
+                "name": "_insuranceFund",
+                "type": "address"
+            }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "insuranceFund",
+        "outputs": [
+            {
+                "internalType": "contract IInsuranceFund",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_trader",
+                "type": "address"
+            }
+        ],
+        "name": "liquidate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_trader",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_quoteAssetAmountLimit",
+                "type": "tuple"
+            }
+        ],
+        "name": "liquidateWithSlippage",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "quoteAssetAmount",
+                "type": "tuple"
+            },
+            {
+                "internalType": "bool",
+                "name": "isPartialClose",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "liquidationFeeRatio",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "d",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "openInterestMap",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "openInterest",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "openInterestLongs",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "openInterestShorts",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "internalType": "enum ClearingHouse.Side",
+                "name": "_side",
+                "type": "uint8"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_quoteAssetAmount",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_leverage",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_baseAssetAmountLimit",
+                "type": "tuple"
+            },
+            {
+                "internalType": "bool",
+                "name": "_feesInFeeToken",
+                "type": "bool"
+            }
+        ],
+        "name": "openPosition",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_partialCloseRatio",
+                "type": "tuple"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_quoteAssetAmountLimit",
+                "type": "tuple"
+            },
+            {
+                "internalType": "bool",
+                "name": "_feesInFeeToken",
+                "type": "bool"
+            }
+        ],
+        "name": "partialClose",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "partialLiquidationRatio",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "d",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "pause",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "paused",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            }
+        ],
+        "name": "payFunding",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "_amm",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_removedMargin",
+                "type": "tuple"
+            }
+        ],
+        "name": "removeMargin",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "k",
+                "type": "tuple"
+            }
+        ],
+        "name": "repegAmmK",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IAmm",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "d",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct Decimal.decimal",
+                "name": "_quoteAssetReserve",
+                "type": "tuple"
+            }
+        ],
+        "name": "repegAmmY",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "repegBot",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "repegFeesTotal",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "d",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            },
+            {
+                "internalType": "bool",
+                "name": "isProvider",
+                "type": "bool"
+            }
+        ],
+        "name": "setBackstopLiquidityProvider",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "contract IERC20",
+                "name": "_token",
+                "type": "address"
+            }
+        ],
+        "name": "setFeeToken",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "enum ClearingHouse.FeeTokenStatus",
+                "name": "_status",
+                "type": "uint8"
+            }
+        ],
+        "name": "setFeeTokenStatus",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_bot",
+                "type": "address"
+            }
+        ],
+        "name": "setRepegBot",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_feePool",
+                "type": "address"
+            }
+        ],
+        "name": "setTollPool",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "unpause",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

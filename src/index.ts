@@ -9,6 +9,8 @@ import {
     OpenPositionParams,
     PartialCloseParams,
     Position,
+    Ratios,
+    RemoveMarginParams,
     Side,
 } from "./types/types";
 import { Amm, ClearingHouse, ClearingHouseViewer, ERC20, InsuranceFund } from "./typechain-types";
@@ -133,6 +135,28 @@ export class NFTPERP {
         return hash;
     }
 
+    public async removeMargin(params: RemoveMarginParams): Promise<string> {
+        const { asset, marginToRemove } = params;
+        const { positionNotional, upnl } = await this._getPositionNotionalAndUpnl(
+            asset,
+            this._wallet.address
+        );
+        const { margin } = await this._getPosition(asset, this._wallet.address);
+        const { mmr } = await this._getRatios(asset);
+        const newMarginRatio = margin.add(upnl).sub(toWei(marginToRemove)).div(positionNotional);
+        if (newMarginRatio.lt(mmr)) {
+            _throw(
+                "position goes below mmr after removal. try removing a small amount to keep above mmr"
+            );
+        }
+
+        const hash = await this._removeMargin(
+            getAssetAddress(asset),
+            toDecimal(toWei(marginToRemove))
+        );
+        return hash;
+    }
+
     private async _getPosition(asset: Asset, trader: string): Promise<Position> {
         const { size, margin, openNotional } = await this._ch.getPosition(
             getAssetAddress(asset),
@@ -145,9 +169,37 @@ export class NFTPERP {
         };
     }
 
+    private async _getMarginRatio(asset: Asset, trader: string): Promise<Big> {
+        const marginRatio = await this._ch.getMarginRatio(getAssetAddress(asset), trader);
+        return fromDecimal(marginRatio);
+    }
+
+    private async _getPositionNotionalAndUpnl(asset: Asset, trader: string) {
+        const _ = await this._ch.getPositionNotionalAndUnrealizedPnl(
+            getAssetAddress(asset),
+            trader,
+            0
+        );
+        return {
+            positionNotional: fromDecimal(_.positionNotional),
+            upnl: fromDecimal(_.unrealizedPnl),
+        };
+    }
+
+    private async _getRatios(asset: Asset): Promise<Ratios> {
+        const assetInstance = this._getAssetInstance(asset);
+        const ratios = await assetInstance.getRatios();
+        return {
+            imr: fromDecimal(ratios.initMarginRatio),
+            mmr: fromDecimal(ratios.maintenanceMarginRatio),
+            plr: fromDecimal(ratios.partialLiquidationRatio),
+            lfr: fromDecimal(ratios.liquidationFeeRatio),
+        };
+    }
+
     private async _calcFee(asset: Asset, notional: Big, side: Side) {
-        const collectionInstance = this._getAssetInstance(asset);
-        const fees = await collectionInstance.calcFee(toDecimal(toWei(notional)), side);
+        const assetInstance = this._getAssetInstance(asset);
+        const fees = await assetInstance.calcFee(toDecimal(toWei(notional)), side);
         return fromDecimal(fees[0]).add(fromDecimal(fees[1]));
     }
 
@@ -165,17 +217,14 @@ export class NFTPERP {
         dir: DirectionOfAsset,
         notional: Big
     ): Promise<Big> {
-        const collectionInstance = this._getAssetInstance(asset);
-        const baseAssetOut = await collectionInstance.getInputPrice(
-            dir,
-            toDecimal(toWei(notional))
-        );
+        const assetInstance = this._getAssetInstance(asset);
+        const baseAssetOut = await assetInstance.getInputPrice(dir, toDecimal(toWei(notional)));
         return fromDecimal(baseAssetOut);
     }
 
     private async _getQuoteAssetOut(asset: Asset, dir: DirectionOfAsset, size: Big): Promise<Big> {
-        const collectionInstance = this._getAssetInstance(asset);
-        const quoteAssetOut = await collectionInstance.getOutputPrice(dir, toDecimal(size));
+        const assetInstance = this._getAssetInstance(asset);
+        const quoteAssetOut = await assetInstance.getOutputPrice(dir, toDecimal(size));
         return fromDecimal(quoteAssetOut);
     }
 
@@ -281,6 +330,12 @@ export class NFTPERP {
 
     private async _addMargin(amm: string, marginToAdd: Decimal) {
         const tx = await this._ch.addMargin(amm, marginToAdd);
+        await tx.wait();
+        return tx.hash;
+    }
+
+    private async _removeMargin(amm: string, marginToRemove: Decimal): Promise<string> {
+        const tx = await this._ch.removeMargin(amm, marginToRemove);
         await tx.wait();
         return tx.hash;
     }

@@ -57,3 +57,15 @@ export interface AddMarginParams {
     asset: Asset;
     marginToAdd: number;
 }
+
+export interface RemoveMarginParams {
+    asset: Asset;
+    marginToRemove: number;
+}
+
+export interface Ratios {
+    imr: Big;
+    mmr: Big;
+    plr: Big;
+    lfr: Big;
+}

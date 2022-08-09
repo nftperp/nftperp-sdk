@@ -1,5 +1,6 @@
 import { constants, Contract, Wallet } from "ethers";
 import {
+    AddMarginParams,
     Asset,
     ClosePositionParams,
     Decimal,
@@ -120,6 +121,15 @@ export class NFTPERP {
             toDecimal(toWei(partialCloseFraction)),
             toDecimal(slippageAmount)
         );
+        return hash;
+    }
+
+    public async addMargin(params: AddMarginParams): Promise<string> {
+        const { asset, marginToAdd } = params;
+        await this._checkBalance(toWei(marginToAdd));
+        await this._checkAllowance(toWei(marginToAdd));
+
+        const hash = await this._addMargin(getAssetAddress(asset), toDecimal(toWei(marginToAdd)));
         return hash;
     }
 
@@ -265,6 +275,12 @@ export class NFTPERP {
             quoteAssetAmountLimit,
             false
         );
+        await tx.wait();
+        return tx.hash;
+    }
+
+    private async _addMargin(amm: string, marginToAdd: Decimal) {
+        const tx = await this._ch.addMargin(amm, marginToAdd);
         await tx.wait();
         return tx.hash;
     }

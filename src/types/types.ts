@@ -52,3 +52,8 @@ export interface Position {
     margin: Big;
     openNotional: Big;
 }
+
+export interface AddMarginParams {
+    asset: Asset;
+    marginToAdd: number;
+}

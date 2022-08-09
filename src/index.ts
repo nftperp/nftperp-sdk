@@ -43,7 +43,7 @@ export class NFTPERP {
     }
 
     /**
-     * @description open a new position
+     * Open a new position
      * @returns tx hash
      */
     public async openPosition(params: OpenPositionParams): Promise<string> {
@@ -81,6 +81,7 @@ export class NFTPERP {
             size
         );
         const fees = await this._calcFee(asset, quoteAssetOut, side);
+        await this._checkBalance(fees);
         await this._checkAllowance(fees);
         const slippageAmount = await this._getSlippageQuoteAssetAmount(
             asset,

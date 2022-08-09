@@ -1,16 +1,26 @@
 {
-    "name": "nftperp-sdk",
+    "name": "@nftperp/sdk",
     "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
+    "description": "SDK for nftperp protocol",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
+        "build": "tsc",
         "test": "echo \"Error: no test specified\" && exit 1",
         "prepare": "husky install",
         "typechain": "typechain --target ethers-v5 --out-dir src/typechain-types 'src/abis/**/*.json'"
     },
-    "keywords": [],
-    "author": "",
+    "keywords": [
+        "sdk",
+        "nft",
+        "nfts",
+        "nftperp"
+    ],
+    "author": "Yash M <ymehta777@gmail.com>",
     "license": "ISC",
+    "engines": {
+        "node": ">=14"
+    },
     "dependencies": {
         "ethers": "^5.6.9"
     },

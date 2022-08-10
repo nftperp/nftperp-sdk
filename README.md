@@ -3,7 +3,7 @@
 ![Typescript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 
 SDK to interact with the nftperp protocol.
-The protocol is current live and running on arbitrum mainnet with fake eth with an attached faucet on website.
+The protocol is currently in BETA and running on arbitrum mainnet with fake eth (can be obtained from faucet on website).
 
 ### Prerequisites
 

@@ -1,8 +1,8 @@
-import addressConfig from "../../config/addresses";
-import { Asset, AssetAddressConfig } from "../../types/types";
+import addressConfig, { ASSETS } from "../../config/addresses";
+import { Asset } from "../../types/types";
 
-export const getAssetAddresses = (): AssetAddressConfig => {
-    return addressConfig.assets;
+export const getAssets = () => {
+    return ASSETS;
 };
 
 export const getAssetAddress = (_asset: Asset): string => {

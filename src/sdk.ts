@@ -2,7 +2,6 @@ import { constants, Contract, Wallet } from "ethers";
 import {
     AddMarginParams,
     Asset,
-    AssetAddressConfig,
     ClosePositionParams,
     Decimal,
     Direction,
@@ -29,10 +28,10 @@ import {
     getIfAddress,
     getWethAddress,
     _throw,
-    getAssetAddresses,
+    getAssets,
 } from "./utils/helpers/helperUtil";
 
-export class NFTPERP {
+export default class SDK {
     private readonly _wallet: Wallet;
 
     private readonly _ch: ClearingHouse;
@@ -218,8 +217,8 @@ export class NFTPERP {
      * Get supported assets
      * @returns assets
      */
-    public getSupportedAssets(): AssetAddressConfig {
-        return getAssetAddresses();
+    public getSupportedAssets() {
+        return getAssets();
     }
 
     //

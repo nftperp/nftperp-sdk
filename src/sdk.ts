@@ -216,6 +216,44 @@ export default class SDK {
     }
 
     /**
+     * Get mark price (nftperp price)
+     * @param asset asset eg bayc
+     * @returns mark price
+     */
+    public async getMarkPrice(asset: Asset) {
+        const spotPrice = await this._getSpotPrice(asset);
+        return format(fromWei(spotPrice));
+    }
+
+    /**
+     * Get index price (real price - as per marketplaces)
+     * @param asset asset eg bayc
+     * @returns index price
+     */
+    public async getIndexPrice(asset: Asset) {
+        const indexPrice = await this._getUnderlyingPrice(asset);
+        return format(fromWei(indexPrice));
+    }
+
+    /**
+     * Get funding details
+     * @param asset asset eg bayc
+     * @returns funding period and next funding time
+     */
+    public async getFundingPeriodAndNextFundingTime(asset: Asset): Promise<{
+        fundingPeriod: number;
+        nextFundingTime: number;
+    }> {
+        const assetInstance = this._getAssetInstance(asset);
+        const fundingPeriod = await assetInstance.fundingPeriod();
+        const nextFundingTime = await assetInstance.nextFundingTime();
+        return {
+            fundingPeriod: format(toBig(fundingPeriod)),
+            nextFundingTime: format(toBig(nextFundingTime)),
+        };
+    }
+
+    /**
      * Get supported assets
      * @returns assets
      */
@@ -226,6 +264,27 @@ export default class SDK {
     //
     // PRIVATE
     //
+
+    /**
+     * get spot price
+     * @returns spot price in `wei`
+     */
+    private async _getSpotPrice(asset: Asset): Promise<Big> {
+        const assetInstance = this._getAssetInstance(asset);
+        const spotPrice = await assetInstance.getSpotPrice();
+        return fromDecimal(spotPrice);
+    }
+
+    /**
+     * get underlying price
+     * @returns underlying price in `wei`
+     */
+    private async _getUnderlyingPrice(asset: Asset): Promise<Big> {
+        const assetInstance = this._getAssetInstance(asset);
+        const underlyingPrice = await assetInstance.getUnderlyingPrice();
+        return fromDecimal(underlyingPrice);
+    }
+
     /**
      * get trader position
      * @returns position (size, margin, notional) in `wei`

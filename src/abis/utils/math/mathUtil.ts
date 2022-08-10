@@ -22,8 +22,8 @@ export const toBig = (value: BigNumber | string | number): Big => {
     return Big(value.toString());
 };
 
-export const format = (value: Big, precision = 3): string => {
-    return value.toFixed(precision);
+export const format = (value: Big, precision = 3, roundUp = false): number => {
+    return value.round(precision, +roundUp).toNumber();
 };
 
 export const countDecimalPlacesInNumber = (value: number): number => {

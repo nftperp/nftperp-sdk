@@ -1,4 +1,4 @@
-import { constants, Contract, Wallet } from "ethers";
+import { constants, Contract, providers, Wallet } from "ethers";
 import {
     AddMarginParams,
     Asset,
@@ -9,8 +9,10 @@ import {
     OpenPositionParams,
     PartialCloseParams,
     Position,
+    PositionDisplay,
     Ratios,
     RemoveMarginParams,
+    Reserves,
     Side,
 } from "./types/types";
 import { Amm, ClearingHouse, ClearingHouseViewer, ERC20, InsuranceFund } from "./typechain-types";
@@ -76,7 +78,7 @@ export class NFTPERP {
 
     public async closePosition(params: ClosePositionParams): Promise<string> {
         const { asset, slippagePercent } = params;
-        const { size } = await this._getPosition(asset, this._wallet.address);
+        const { size } = await this._getPosition(asset);
         const side = size.gt(0) ? Side.SELL : Side.BUY;
         const quoteAssetOut = await this._getQuoteAssetOut(
             asset,
@@ -99,7 +101,7 @@ export class NFTPERP {
 
     public async partialClose(params: PartialCloseParams) {
         const { asset, partialClosePercent, slippagePercent } = params;
-        const { size } = await this._getPosition(asset, this._wallet.address);
+        const { size } = await this._getPosition(asset);
         const side = size.gt(0) ? Side.SELL : Side.BUY;
         const partialCloseFraction = toBig(partialClosePercent).div(100);
         const sizeToClose = size.mul(partialCloseFraction);
@@ -141,7 +143,7 @@ export class NFTPERP {
             asset,
             this._wallet.address
         );
-        const { margin } = await this._getPosition(asset, this._wallet.address);
+        const { margin } = await this._getPosition(asset);
         const { mmr } = await this._getRatios(asset);
         const newMarginRatio = margin.add(upnl).sub(toWei(marginToRemove)).div(positionNotional);
         if (newMarginRatio.lt(mmr)) {
@@ -157,7 +159,34 @@ export class NFTPERP {
         return hash;
     }
 
-    private async _getPosition(asset: Asset, trader: string): Promise<Position> {
+    public async getPosition(
+        asset: Asset,
+        trader = this._wallet.address
+    ): Promise<PositionDisplay> {
+        const { size, margin, openNotional } = await this._getPosition(asset, trader);
+        const liquidationPrice = await this._getLiquidationPrice(asset, trader);
+        const { upnl } = await this._getPositionNotionalAndUpnl(asset, trader);
+        const { margin: marginWithFunding } = await this._getPositionWithFundingPayment(
+            asset,
+            trader
+        );
+        return {
+            size: format(fromWei(size)),
+            margin: format(fromWei(margin)),
+            leverage: format(openNotional.div(margin)),
+            pnl: format(fromWei(upnl)),
+            funding: format(fromWei(marginWithFunding.sub(margin))),
+            entryPrice: format(openNotional.div(size.abs())),
+            liquidationPrice: format(liquidationPrice),
+        };
+    }
+
+    public async getMarginRatio(asset: Asset, trader = this._wallet.address): Promise<number> {
+        const mr = await this._getMarginRatio(asset, trader);
+        return format(fromWei(mr));
+    }
+
+    private async _getPosition(asset: Asset, trader = this._wallet.address): Promise<Position> {
         const { size, margin, openNotional } = await this._ch.getPosition(
             getAssetAddress(asset),
             trader
@@ -169,12 +198,58 @@ export class NFTPERP {
         };
     }
 
-    private async _getMarginRatio(asset: Asset, trader: string): Promise<Big> {
+    private async _getLiquidationPrice(asset: Asset, trader = this._wallet.address) {
+        const ratios = await this._getRatios(asset);
+        const position = await this._getPositionWithFundingPayment(asset, trader);
+        const reserves = await this._getReserves(asset);
+        const size = fromWei(position.size);
+        const margin = fromWei(position.margin);
+        const openNotional = fromWei(position.openNotional);
+        const mmr = fromWei(ratios.mmr);
+        const k = fromWei(reserves.quoteAssetReserve).mul(fromWei(reserves.baseAssetReserve));
+        const pn = size.gte(0)
+            ? margin.minus(openNotional).div(mmr.minus(1))
+            : margin.add(openNotional).div(mmr.add(1));
+        const x = size.gte(0)
+            ? size
+                  .mul(-0.5)
+                  .add(size.mul(pn).pow(2).add(pn.mul(k).mul(size).mul(4)).sqrt().div(pn.mul(2)))
+            : size
+                  .mul(-0.5)
+                  .add(
+                      size.mul(pn).pow(2).minus(pn.mul(k).mul(size).mul(4)).sqrt().div(pn.mul(-2))
+                  );
+        return k.div(x.pow(2));
+    }
+
+    private async _getReserves(asset: Asset): Promise<Reserves> {
+        const assetInstance = this._getAssetInstance(asset);
+        const [quoteAssetReserve, baseAssetReserve] = await assetInstance.getReserves();
+        return {
+            quoteAssetReserve: fromDecimal(quoteAssetReserve),
+            baseAssetReserve: fromDecimal(baseAssetReserve),
+        };
+    }
+
+    private async _getPositionWithFundingPayment(
+        asset: Asset,
+        trader = this._wallet.address
+    ): Promise<Position> {
+        const { size, margin, openNotional } =
+            await this._chv.getPersonalPositionWithFundingPayment(getAssetAddress(asset), trader);
+        return {
+            size: fromDecimal(size),
+            margin: fromDecimal(margin),
+            openNotional: fromDecimal(openNotional),
+        };
+    }
+
+    private async _getMarginRatio(asset: Asset, trader = this._wallet.address): Promise<Big> {
         const marginRatio = await this._ch.getMarginRatio(getAssetAddress(asset), trader);
         return fromDecimal(marginRatio);
     }
 
-    private async _getPositionNotionalAndUpnl(asset: Asset, trader: string) {
+    private async _getPositionNotionalAndUpnl(asset: Asset, trader = this._wallet.address) {
         const _ = await this._ch.getPositionNotionalAndUnrealizedPnl(
             getAssetAddress(asset),
             trader,

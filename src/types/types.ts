@@ -69,3 +69,18 @@ export interface Ratios {
     plr: Big;
     lfr: Big;
 }
+
+export interface PositionDisplay {
+    size: number;
+    margin: number;
+    leverage: number;
+    pnl: number;
+    funding: number;
+    entryPrice: number;
+    liquidationPrice: number;
+}
+
+export interface Reserves {
+    quoteAssetReserve: Big;
+    baseAssetReserve: Big;
+}

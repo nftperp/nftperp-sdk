@@ -1,4 +1,4 @@
-import { constants, Contract, providers, Wallet } from "ethers";
+import { constants, Contract, Wallet } from "ethers";
 import {
     AddMarginParams,
     Asset,
@@ -18,7 +18,7 @@ import {
 import { Amm, ClearingHouse, ClearingHouseViewer, ERC20, InsuranceFund } from "./typechain-types";
 import abis from "./abis";
 import Big from "big.js";
-import { format, fromDecimal, fromWei, toBig, toDecimal, toWei } from "./abis/utils/math/mathUtil";
+import { format, fromDecimal, fromWei, toBig, toDecimal, toWei } from "./utils/math/mathUtil";
 import {
     getChAddress,
     getChvAddress,
@@ -26,7 +26,7 @@ import {
     getIfAddress,
     getWethAddress,
     _throw,
-} from "./abis/utils/helpers/helperUtil";
+} from "./utils/helpers/helperUtil";
 
 export class NFTPERP {
     private readonly _wallet: Wallet;

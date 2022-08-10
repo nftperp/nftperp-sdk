@@ -13,7 +13,7 @@ The protocol is currently in BETA and running on arbitrum mainnet with fake eth 
 ### Terminologies
 
 -   `asset` the nft collection to trade. synonymous to "market pair", "amm".
--   `direction` direction of trade. long or short.
+-   `direction` direction of trade. _long_ or _short_.
 -   `margin` collateral amount. this is what you risk to lose on position liquidation.
 -   `notional` total value of position (margin \* leverage).
 -   `margin ratio` margin to notional ratio.

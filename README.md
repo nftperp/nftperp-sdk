@@ -46,7 +46,7 @@ const wallet = new ethers.Wallet("<your-private-key>", provider);
 const nftperp = new SDK(wallet);
 ```
 
--   Open a position
+##### Open a position
 
 ```ts
 const hash = await nftperp.openPosition({
@@ -66,13 +66,12 @@ console.log(nftperp.getSupportedAssets());
 */
 ```
 
--   Get postion info
+##### Get postion info
 
 ```ts
 const position = await nftperp.getPosition({
     asset: "bayc",
 });
-
 console.log(position);
 /**
 {
@@ -87,7 +86,7 @@ console.log(position);
 */
 ```
 
--   Close a position
+##### Close a position
 
 ```ts
 const hash = await nftperp.closePosition({

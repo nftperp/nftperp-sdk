@@ -55,6 +55,7 @@ export default class SDK {
      * @param params params for opening position
      * @param params.asset the asset to trade eg bayc
      * @param params.direction long or short
+     * @param params.margin collateral amount
      * @param params.leverage leverage
      * @returns tx hash
      */

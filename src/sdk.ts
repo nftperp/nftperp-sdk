@@ -95,6 +95,7 @@ export default class SDK {
         if (size.eq(0)) {
             _throw("no such position");
         }
+        // closing long is equivalent of shorting
         const side = size.gt(0) ? Side.SELL : Side.BUY;
         const slippageAmount = await this._getSlippageQuoteAssetAmount(
             asset,
@@ -160,11 +161,11 @@ export default class SDK {
      */
     public async removeMargin(params: RemoveMarginParams): Promise<string> {
         const { asset, marginToRemove } = params;
+        const { margin } = await this._getPositionWithFundingPayment(asset);
         const { positionNotional, upnl } = await this._getPositionNotionalAndUpnl(
             asset,
             this._wallet.address
         );
-        const { margin } = await this._getPosition(asset);
         const { mmr } = await this._getRatios(asset);
         const newMarginRatio = margin.add(upnl).sub(toWei(marginToRemove)).div(positionNotional);
         if (newMarginRatio.lt(mmr)) {
@@ -225,6 +226,10 @@ export default class SDK {
     //
     // PRIVATE
     //
+    /**
+     * get trader position
+     * @returns position (size, margin, notional) in `wei`
+     */
     private async _getPosition(asset: Asset, trader = this._wallet.address): Promise<Position> {
         const { size, margin, openNotional } = await this._ch.getPosition(
             getAssetAddress(asset),
@@ -237,6 +242,10 @@ export default class SDK {
         };
     }
 
+    /**
+     * get liquidation price
+     * https://www.notion.so/New-liquidation-price-formula-exact-solution-6fc007bd28134f1397d13c8a6e6c1fbc
+     */
     private async _getLiquidationPrice(asset: Asset, trader = this._wallet.address) {
         const ratios = await this._getRatios(asset);
         const position = await this._getPositionWithFundingPayment(asset, trader);
@@ -261,6 +270,10 @@ export default class SDK {
         return k.div(x.pow(2));
     }
 
+    /**
+     * get reserves
+     * @returns quote asset reserve (y) and base asset reserve (x) in `wei`
+     */
     private async _getReserves(asset: Asset): Promise<Reserves> {
         const assetInstance = this._getAssetInstance(asset);
         const [quoteAssetReserve, baseAssetReserve] = await assetInstance.getReserves();
@@ -270,6 +283,10 @@ export default class SDK {
         };
     }
 
+    /**
+     * get position with funding payment (margin is inclusive of funding)
+     * @returns position (size, margin, notional) in `wei`
+     */
     private async _getPositionWithFundingPayment(
         asset: Asset,
         trader = this._wallet.address
@@ -283,11 +300,19 @@ export default class SDK {
         };
     }
 
+    /**
+     * get margin ratio
+     * @returns margin ratio in `wei`
+     */
     private async _getMarginRatio(asset: Asset, trader = this._wallet.address): Promise<Big> {
         const marginRatio = await this._ch.getMarginRatio(getAssetAddress(asset), trader);
         return fromDecimal(marginRatio);
     }
 
+    /**
+     * get active notional and upnl
+     * @returns pn and upnl in `wei`
+     */
     private async _getPositionNotionalAndUpnl(asset: Asset, trader = this._wallet.address) {
         const _ = await this._ch.getPositionNotionalAndUnrealizedPnl(
             getAssetAddress(asset),
@@ -300,6 +325,10 @@ export default class SDK {
         };
     }
 
+    /**
+     * get imr, mmr, plr, lfr
+     * @returns ratios in `wei`
+     */
     private async _getRatios(asset: Asset): Promise<Ratios> {
         const assetInstance = this._getAssetInstance(asset);
         const ratios = await assetInstance.getRatios();
@@ -311,21 +340,22 @@ export default class SDK {
         };
     }
 
+    /**
+     * calc fees
+     * @requires notional in `wei`
+     * @returns fees in `wei`
+     */
     private async _calcFee(asset: Asset, notional: Big, side: Side) {
         const assetInstance = this._getAssetInstance(asset);
         const fees = await assetInstance.calcFee(toDecimal(notional), side);
         return fromDecimal(fees[0]).add(fromDecimal(fees[1]));
     }
 
-    private async _getAllowance(): Promise<Big> {
-        return toBig(await this._weth.allowance(this._wallet.address, this._ch.address));
-    }
-
-    private async _maxApprove(): Promise<void> {
-        const tx = await this._weth.approve(this._ch.address, constants.MaxUint256);
-        await tx.wait();
-    }
-
+    /**
+     * get base asset out
+     * @requires notional in `eth`
+     * @returns base asset out in `wei`
+     */
     private async _getBaseAssetOut(
         asset: Asset,
         dir: DirectionOfAsset,
@@ -336,12 +366,22 @@ export default class SDK {
         return fromDecimal(baseAssetOut);
     }
 
+    /**
+     * get quote asset out
+     * @requires size in `wei`
+     * @returns quote asset out in `wei`
+     */
     private async _getQuoteAssetOut(asset: Asset, dir: DirectionOfAsset, size: Big): Promise<Big> {
         const assetInstance = this._getAssetInstance(asset);
         const quoteAssetOut = await assetInstance.getOutputPrice(dir, toDecimal(size));
         return fromDecimal(quoteAssetOut);
     }
 
+    /**
+     * get base asset amount limit
+     * @requires notional in `eth`
+     * @returns base asset amount limit in `wei`
+     */
     private async _getSlippageBaseAssetAmount(
         asset: Asset,
         side: Side,
@@ -351,16 +391,22 @@ export default class SDK {
         if (!slippagePercent) {
             return toBig(0);
         }
+        // direction of quote
         const dir =
             side === Side.BUY ? DirectionOfAsset.ADD_TO_AMM : DirectionOfAsset.REMOVE_FROM_AMM;
         const baseAssetOut = await this._getBaseAssetOut(asset, dir, notional);
         const slippageFraction = Big(slippagePercent).div(100);
         if (side === Side.BUY) {
-            return baseAssetOut.mul(toBig(1).sub(slippageFraction)).round(0, 0);
+            return baseAssetOut.mul(toBig(1).sub(slippageFraction)).round(0, 0); // round down
         }
-        return baseAssetOut.mul(toBig(1).add(slippageFraction)).round(0, 1);
+        return baseAssetOut.mul(toBig(1).add(slippageFraction)).round(0, 1); // round up
     }
 
+    /**
+     * get quote asset amount limit
+     * @requires size in `wei`
+     * @returns quote asset amount limit `wei`
+     */
     private async _getSlippageQuoteAssetAmount(
         asset: Asset,
         side: Side,
@@ -370,6 +416,7 @@ export default class SDK {
         if (!slippagePercent) {
             return toBig(0);
         }
+        // direction of base
         const dir =
             side === Side.SELL ? DirectionOfAsset.ADD_TO_AMM : DirectionOfAsset.REMOVE_FROM_AMM;
         const quoteAssetOut = await this._getQuoteAssetOut(asset, dir, size);
@@ -380,14 +427,18 @@ export default class SDK {
         return quoteAssetOut.mul(toBig(1).add(slippageFraction)).round(0, 1);
     }
 
-    private _getAssetInstance(asset: Asset): Amm {
-        return new Contract(getAssetAddress(asset), abis.ammAbi, this._wallet) as Amm;
-    }
-
+    /**
+     * get balance of quote token
+     * @returns balance in `wei`
+     */
     private async _getBalance(): Promise<Big> {
         return toBig(await this._weth.balanceOf(this._wallet.address));
     }
 
+    /**
+     * throws if balance below amount
+     * @requires amount in `wei`
+     */
     private async _checkBalance(amount: Big): Promise<void> {
         const balance = await this._getBalance();
         if (balance.lt(amount)) {
@@ -395,6 +446,27 @@ export default class SDK {
         }
     }
 
+    /**
+     * allowance of quote token on clearing house
+     * @returns allowance in `wei`
+     */
+    private async _getAllowance(): Promise<Big> {
+        return toBig(await this._weth.allowance(this._wallet.address, this._ch.address));
+    }
+
+    /**
+     * sets max approval on clearing house
+     * @returns hash
+     */
+    private async _maxApprove(): Promise<string> {
+        const tx = await this._weth.approve(this._ch.address, constants.MaxUint256);
+        return tx.hash;
+    }
+
+    /**
+     * approves if allowance less than amount
+     * @requires amount in `wei`
+     */
     private async _checkAllowance(amount: Big): Promise<void> {
         const allowance = await this._getAllowance();
         if (allowance.lt(amount)) {
@@ -402,6 +474,10 @@ export default class SDK {
         }
     }
 
+    /**
+     * open position
+     * @returns hash
+     */
     private async _openPosition(
         amm: string,
         side: Side,
@@ -417,16 +493,22 @@ export default class SDK {
             baseAssetAmountLimit,
             false
         );
-        await tx.wait();
         return tx.hash;
     }
 
+    /**
+     * close position
+     * @returns hash
+     */
     private async _closePosition(amm: string, quoteAssetAmountLimit: Decimal) {
         const tx = await this._ch.closePosition(amm, quoteAssetAmountLimit, false);
-        await tx.wait();
         return tx.hash;
     }
 
+    /**
+     * partial close
+     * @returns hash
+     */
     private async _partialClose(
         amm: string,
         partialCloseRatio: Decimal,
@@ -438,23 +520,39 @@ export default class SDK {
             quoteAssetAmountLimit,
             false
         );
-        await tx.wait();
         return tx.hash;
     }
 
+    /**
+     * add margin
+     * @returns hash
+     */
     private async _addMargin(amm: string, marginToAdd: Decimal) {
         const tx = await this._ch.addMargin(amm, marginToAdd);
-        await tx.wait();
         return tx.hash;
     }
 
+    /**
+     * remove margin
+     * @returns hash
+     */
     private async _removeMargin(amm: string, marginToRemove: Decimal): Promise<string> {
         const tx = await this._ch.removeMargin(amm, marginToRemove);
-        await tx.wait();
         return tx.hash;
     }
 
+    /**
+     * get side based on direction.
+     * @returns side
+     */
     private _getSide(direction: Direction): Side {
         return direction === "long" ? Side.BUY : Side.SELL;
+    }
+
+    /**
+     * get amm instance to interact with amm
+     */
+    private _getAssetInstance(asset: Asset): Amm {
+        return new Contract(getAssetAddress(asset), abis.ammAbi, this._wallet) as Amm;
     }
 }

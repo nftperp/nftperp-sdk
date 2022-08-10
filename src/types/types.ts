@@ -44,13 +44,7 @@ export interface ClosePositionParams {
 export interface PartialCloseParams {
     asset: Asset;
     partialClosePercent: number;
-    slippagePercent: number;
-}
-
-export interface Position {
-    size: Big;
-    margin: Big;
-    openNotional: Big;
+    slippagePercent?: number;
 }
 
 export interface AddMarginParams {
@@ -61,6 +55,22 @@ export interface AddMarginParams {
 export interface RemoveMarginParams {
     asset: Asset;
     marginToRemove: number;
+}
+
+export interface GetPositionParams {
+    asset: Asset;
+    trader?: string;
+}
+
+export interface GetMarginRatioParams {
+    asset: Asset;
+    trader?: string;
+}
+
+export interface Position {
+    size: Big;
+    margin: Big;
+    openNotional: Big;
 }
 
 export interface Ratios {

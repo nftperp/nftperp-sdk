@@ -1,5 +1,9 @@
 import addressConfig from "../../config/addresses";
-import { Asset } from "../../types/types";
+import { Asset, AssetAddressConfig } from "../../types/types";
+
+export const getAssetAddresses = (): AssetAddressConfig => {
+    return addressConfig.assets;
+};
 
 export const getAssetAddress = (_asset: Asset): string => {
     return addressConfig.assets[_asset];

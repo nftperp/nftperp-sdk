@@ -16,14 +16,16 @@ export enum DirectionOfAsset {
 
 export type Asset = typeof ASSETS[number];
 
+export type AssetAddressConfig = {
+    [key in Asset]: string;
+};
+
 export interface AddressConfig {
     ch: string;
     chv: string;
     iF: string;
     weth: string;
-    assets: {
-        [key in Asset]: string;
-    };
+    assets: AssetAddressConfig;
 }
 
 export type Decimal = { d: string | BigNumber };

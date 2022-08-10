@@ -2,6 +2,7 @@ import { constants, Contract, Wallet } from "ethers";
 import {
     AddMarginParams,
     Asset,
+    AssetAddressConfig,
     ClosePositionParams,
     Decimal,
     Direction,
@@ -28,6 +29,7 @@ import {
     getIfAddress,
     getWethAddress,
     _throw,
+    getAssetAddresses,
 } from "./utils/helpers/helperUtil";
 
 export class NFTPERP {
@@ -210,6 +212,14 @@ export class NFTPERP {
         const { asset, trader } = params;
         const mr = await this._getMarginRatio(asset, trader);
         return format(fromWei(mr), undefined, true);
+    }
+
+    /**
+     * Get supported assets
+     * @returns assets
+     */
+    public getSupportedAssets(): AssetAddressConfig {
+        return getAssetAddresses();
     }
 
     //

@@ -6,7 +6,7 @@
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc",
-        "start": "node dist/index.js",
+        "start": "node dist/sdk.js",
         "prepare": "husky install",
         "typechain": "typechain --target ethers-v5 --out-dir src/typechain-types 'src/abis/**/*.json'"
     },
@@ -17,7 +17,7 @@
         "nftperp"
     ],
     "author": "Yash M <ymehta777@gmail.com>",
-    "license": "ISC",
+    "license": "MIT",
     "engines": {
         "node": ">=14"
     },

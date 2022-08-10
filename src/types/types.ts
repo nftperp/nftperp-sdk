@@ -96,3 +96,24 @@ export interface Reserves {
     quoteAssetReserve: Big;
     baseAssetReserve: Big;
 }
+
+export interface OpenInterestInfo {
+    openInterest: Big;
+    openInterestLongs: Big;
+    openInterestShorts: Big;
+    ratio: Big;
+}
+
+export interface AssetInfo {
+    asset: Uppercase<Asset>;
+    markPrice: number;
+    indexPrice: number;
+    maxLeverage: number;
+    maintenanceMarginPercent: number;
+    fullLiquidationPercent: number;
+    previousFundingPercent: number;
+    nextFundingTime: number;
+    openInterest: number;
+    openInterestLongs: number;
+    openInterestShorts: number;
+}

@@ -1,13 +1,15 @@
-import { constants, Contract, Wallet } from "ethers";
+import { constants, Contract, providers, Wallet } from "ethers";
 import {
     AddMarginParams,
     Asset,
+    AssetInfo,
     ClosePositionParams,
     Decimal,
     Direction,
     DirectionOfAsset,
     GetMarginRatioParams,
     GetPositionParams,
+    OpenInterestInfo,
     OpenPositionParams,
     PartialCloseParams,
     Position,
@@ -238,18 +240,48 @@ export default class SDK {
     /**
      * Get funding details
      * @param asset asset eg bayc
-     * @returns funding period and next funding time
+     * @returns funding period and next funding time, prev funding rate (`wei`)
      */
-    public async getFundingPeriodAndNextFundingTime(asset: Asset): Promise<{
+    public async getFundingInfo(asset: Asset): Promise<{
         fundingPeriod: number;
         nextFundingTime: number;
+        previousFundingPercent: number;
     }> {
         const assetInstance = this._getAssetInstance(asset);
         const fundingPeriod = await assetInstance.fundingPeriod();
         const nextFundingTime = await assetInstance.nextFundingTime();
+        const previousFundingRate = await assetInstance.fundingRate();
         return {
             fundingPeriod: format(toBig(fundingPeriod)),
             nextFundingTime: format(toBig(nextFundingTime)),
+            previousFundingPercent: format(fromWei(previousFundingRate).mul(100)),
+        };
+    }
+
+    /**
+     * Get asset info
+     * @param asset asset eg bayc
+     * @returns Asset Info
+     */
+    public async getAssetInfo(asset: Asset): Promise<AssetInfo> {
+        const markPrice = await this._getSpotPrice(asset);
+        const indexPrice = await this._getUnderlyingPrice(asset);
+        const { nextFundingTime, previousFundingPercent } = await this.getFundingInfo(asset);
+        const { openInterest, openInterestLongs, openInterestShorts } =
+            await this._getOpenInterestInfo(asset);
+        const { imr, mmr, lfr } = await this._getRatios(asset);
+        return {
+            asset: asset.toUpperCase() as Uppercase<Asset>,
+            markPrice: format(fromWei(markPrice)),
+            indexPrice: format(fromWei(indexPrice)),
+            maxLeverage: format(toWei(1).div(imr)),
+            maintenanceMarginPercent: format(fromWei(mmr).mul(100)),
+            fullLiquidationPercent: format(fromWei(lfr).mul(100)),
+            previousFundingPercent,
+            nextFundingTime,
+            openInterest: format(fromWei(openInterest)),
+            openInterestLongs: format(fromWei(openInterestLongs)),
+            openInterestShorts: format(fromWei(openInterestShorts)),
         };
     }
 
@@ -264,6 +296,22 @@ export default class SDK {
     //
     // PRIVATE
     //
+
+    /**
+     * get notional longs and shorts
+     * @param asset
+     * @returns open interest info in `wei`
+     */
+    private async _getOpenInterestInfo(asset: Asset): Promise<OpenInterestInfo> {
+        const { openInterest, openInterestLongs, openInterestShorts } =
+            await this._ch.openInterestMap(getAssetAddress(asset));
+        return {
+            openInterestLongs: fromDecimal(openInterestLongs),
+            openInterestShorts: fromDecimal(openInterestShorts),
+            ratio: fromDecimal(openInterestLongs).div(fromDecimal(openInterestShorts)).round(0),
+            openInterest: fromDecimal(openInterest),
+        };
+    }
 
     /**
      * get spot price

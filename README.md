@@ -2,15 +2,11 @@
 
 ![Typescript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 
-SDK to interact with the nftperp protocol.
+SDK to interact with the nftperp protocol ([docs](https://nftperp.notion.site/nftperp/nftperp-xyz-2b456a853321481bac47e5a1a6bbfd4e)).
 
 _tldr; nftperp is a derivates platform for nfts. for the first time ever, short nfts with leverage_
 
-[docs](https://nftperp.notion.site/nftperp/nftperp-xyz-2b456a853321481bac47e5a1a6bbfd4e)
-
-The protocol is currently in BETA on arbitrum mainnet. it uses fake eth for paper trading, which can be obtained from faucet on website/sdk
-
-[beta](https://staging.nftperp.xyz)
+The protocol is currently in BETA on arbitrum mainnet ([dapp](https://staging.nftperp.xyz)). it uses fake eth for paper trading, which can be obtained from faucet on website/sdk
 
 ![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)
 

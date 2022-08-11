@@ -14,22 +14,11 @@ For any queries, hop in the community discord and ask away [invite link](https:/
 
 ---
 
--   [Terminology](#terminology)
 -   [Installation](#installation)
+-   [Terminology](#terminology)
 -   [Usage](#usage)
 
 ---
-
-### Terminology
-
--   `asset` the nft collection to trade. synonymous to _market pair_, _amm_.
--   `direction` direction of trade. _long_ or _short_.
--   `margin` collateral amount. this is the amount you risk on liquidation.
--   `notional` total value of position _margin x leverage_.
--   `mark price` nftperp's price of the asset.
--   `index price` actual price of the asset. _floor from marketplaces_.
--   `margin ratio` margin to notional ratio.
--   `maintenance margin ratio` minimum margin ratio to be maintained to avoid liquidation.
 
 ### Installation
 
@@ -42,6 +31,17 @@ Also requires `ethers` library
 ```sh
 npm i ethers
 ```
+
+### Terminology
+
+-   `asset` the nft collection to trade. synonymous to _market pair_, _amm_.
+-   `direction` direction of trade. _long_ or _short_.
+-   `margin` collateral amount. this is the amount you risk on liquidation.
+-   `notional` total value of position _margin x leverage_.
+-   `mark price` nftperp's price of the asset.
+-   `index price` actual price of the asset. _floor from marketplaces_.
+-   `margin ratio` margin to notional ratio.
+-   `maintenance margin ratio` minimum margin ratio to be maintained to avoid liquidation.
 
 ### Usage
 

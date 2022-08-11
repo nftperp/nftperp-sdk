@@ -39,7 +39,7 @@ import {
     getAssets,
 } from "./utils/helpers/helperUtil";
 
-export default class SDK {
+export class SDK {
     private readonly _wallet: Wallet;
 
     private readonly _ch: ClearingHouse;

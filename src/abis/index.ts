@@ -2,8 +2,8 @@ import ammAbi from "./Amm.json";
 import chAbi from "./ClearingHouse.json";
 import chvAbi from "./ClearingHouseViewer.json";
 import ifAbi from "./InsuranceFund.json";
-import erc20Abi from "./ERC20.json";
+import mockWethAbi from "./MockWETH.json";
 
-const abis = { ammAbi, chAbi, chvAbi, ifAbi, erc20Abi };
+const abis = { ammAbi, chAbi, chvAbi, ifAbi, mockWethAbi };
 
 export default abis;

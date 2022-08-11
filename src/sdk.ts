@@ -1,4 +1,4 @@
-import { constants, Contract, providers, Wallet } from "ethers";
+import { constants, Contract, Wallet } from "ethers";
 import {
     AddMarginParams,
     Asset,
@@ -19,7 +19,13 @@ import {
     Reserves,
     Side,
 } from "./types/types";
-import { Amm, ClearingHouse, ClearingHouseViewer, ERC20, InsuranceFund } from "./typechain-types";
+import {
+    Amm,
+    ClearingHouse,
+    ClearingHouseViewer,
+    MockWETH,
+    InsuranceFund,
+} from "./typechain-types";
 import abis from "./abis";
 import Big from "big.js";
 import { format, fromDecimal, fromWei, toBig, toDecimal, toWei } from "./utils/math/mathUtil";
@@ -39,7 +45,7 @@ export default class SDK {
     private readonly _ch: ClearingHouse;
     private readonly _chv: ClearingHouseViewer;
     private readonly _if: InsuranceFund;
-    private readonly _weth: ERC20;
+    private readonly _weth: MockWETH;
     /**
      * @param wallet_ wallet signer used for making transactions
      */
@@ -49,7 +55,15 @@ export default class SDK {
         this._ch = new Contract(getChAddress(), abis.chAbi, wallet_) as ClearingHouse;
         this._chv = new Contract(getChvAddress(), abis.chvAbi, wallet_) as ClearingHouseViewer;
         this._if = new Contract(getIfAddress(), abis.ifAbi, wallet_) as InsuranceFund;
-        this._weth = new Contract(getWethAddress(), abis.erc20Abi, wallet_) as ERC20;
+        this._weth = new Contract(getWethAddress(), abis.mockWethAbi, wallet_) as MockWETH;
+    }
+
+    /**
+     * Get mock weth from faucet for paper trading on beta
+     * @returns `5` mock weth
+     */
+    public async useFaucet(): Promise<string> {
+        return await this._weth.mint();
     }
 
     /**

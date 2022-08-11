@@ -16,7 +16,20 @@ The protocol is currently in BETA on arbitrum mainnet. it uses fake eth for pape
 
 For any queries, hop in the community discord and ask away [invite link](https://discord.gg/J5vUUcTE6F)
 
-### Terminologies
+---
+
+-   [Terminology](#terminology)
+-   [Installation](#installation)
+-   [Usage](#usage)
+    -   [Setup](#setup)
+    -   [Open position](#open-a-position)
+    -   [Get position](#get-postion-info)
+    -   [Close position](#close-a-position)
+    -   [Get asset info](#get-asset-info)
+
+---
+
+### Terminology
 
 -   `asset` the nft collection to trade. synonymous to _market pair_, _amm_.
 -   `direction` direction of trade. _long_ or _short_.

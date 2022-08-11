@@ -63,7 +63,8 @@ export default class SDK {
      * @returns `5` mock weth
      */
     public async useFaucet(): Promise<string> {
-        return await this._weth.mint();
+        const tx = await this._weth.mint();
+        return tx.hash;
     }
 
     /**

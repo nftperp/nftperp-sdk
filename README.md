@@ -19,7 +19,6 @@ For any queries, hop in the community discord and ask away [invite link](https:/
 ### Terminologies
 
 -   `asset` the nft collection to trade. synonymous to _market pair_, _amm_.
-
 -   `direction` direction of trade. _long_ or _short_.
 -   `margin` collateral amount. this is the amount you risk on liquidation.
 -   `notional` total value of position _margin x leverage_.
@@ -46,7 +45,7 @@ npm i ethers
 
 ```ts
 import ethers from "ethers";
-import SDK from "@nftperp/sdk";
+import { SDK } from "@nftperp/sdk";
 
 /**
 the general rpc url for arb mainnet is "https://arb1.arbitrum.io/rpc", you can also use a personal one from alchemy (https://www.alchemy.com/)

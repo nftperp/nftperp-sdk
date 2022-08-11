@@ -17,11 +17,6 @@ For any queries, hop in the community discord and ask away [invite link](https:/
 -   [Terminology](#terminology)
 -   [Installation](#installation)
 -   [Usage](#usage)
-    -   [Setup](#setup)
-    -   [Open position](#open-a-position)
-    -   [Get position](#get-postion-info)
-    -   [Close position](#close-a-position)
-    -   [Get asset info](#get-asset-info)
 
 ---
 

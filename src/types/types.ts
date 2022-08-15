@@ -1,12 +1,18 @@
 import Big from "big.js";
 import { BigNumber } from "ethers";
-import { ASSETS } from "../config/addresses";
 
-export type Direction = "long" | "short";
+// declare assets here
+export enum Amm {
+    BAYC = "BAYC",
+    MOONBIRDS = "MOONBIRDS",
+    MAYC = "MAYC",
+    DOODLES = "DOODLES",
+    CLONEX = "CLONEX",
+}
 
 export enum Side {
-    BUY,
-    SELL,
+    BUY, // long
+    SELL, // short
 }
 
 export enum DirectionOfAsset {
@@ -14,60 +20,27 @@ export enum DirectionOfAsset {
     REMOVE_FROM_AMM,
 }
 
-export type Asset = typeof ASSETS[number];
+export enum Instance {
+    BETA = "BETA",
+    HACKATHON = "HACKATHON",
+}
 
-export type AssetAddressConfig = {
-    [key in Asset]: string;
-};
-
-export interface AddressConfig {
+export type InstanceConfig = {
+    chainId: number;
     ch: string;
     chv: string;
     iF: string;
     weth: string;
-    assets: AssetAddressConfig;
-}
+    amms: {
+        [key in Amm]?: string;
+    };
+};
+
+export type Config = {
+    [key in Instance]: InstanceConfig;
+};
 
 export type Decimal = { d: string | BigNumber };
-
-export interface OpenPositionParams {
-    asset: Asset;
-    direction: Direction;
-    margin: number;
-    leverage: number;
-    slippagePercent?: number;
-}
-
-export interface ClosePositionParams {
-    asset: Asset;
-    slippagePercent?: number;
-}
-
-export interface PartialCloseParams {
-    asset: Asset;
-    partialClosePercent: number;
-    slippagePercent?: number;
-}
-
-export interface AddMarginParams {
-    asset: Asset;
-    marginToAdd: number;
-}
-
-export interface RemoveMarginParams {
-    asset: Asset;
-    marginToRemove: number;
-}
-
-export interface GetPositionParams {
-    asset: Asset;
-    trader?: string;
-}
-
-export interface GetMarginRatioParams {
-    asset: Asset;
-    trader?: string;
-}
 
 export interface Position {
     size: Big;
@@ -103,8 +76,8 @@ export interface OpenInterestInfo {
     openInterestShorts: Big;
 }
 
-export interface AssetInfo {
-    asset: Uppercase<Asset>;
+export interface AmmInfo {
+    amm: Amm;
     markPrice: number;
     indexPrice: number;
     maxLeverage: number;

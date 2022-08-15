@@ -1,26 +1,19 @@
 import { constants, Contract, Wallet } from "ethers";
 import {
-    AddMarginParams,
-    Asset,
-    AssetInfo,
-    ClosePositionParams,
+    Amm,
+    AmmInfo,
     Decimal,
-    Direction,
     DirectionOfAsset,
-    GetMarginRatioParams,
-    GetPositionParams,
+    Instance,
     OpenInterestInfo,
-    OpenPositionParams,
-    PartialCloseParams,
     Position,
     PositionDisplay,
     Ratios,
-    RemoveMarginParams,
     Reserves,
     Side,
 } from "./types/types";
 import {
-    Amm,
+    Amm as AmmContract,
     ClearingHouse,
     ClearingHouseViewer,
     MockWETH,
@@ -29,33 +22,34 @@ import {
 import abis from "./abis";
 import Big from "big.js";
 import { format, fromDecimal, fromWei, toBig, toDecimal, toWei } from "./utils/math/mathUtil";
-import {
-    getChAddress,
-    getChvAddress,
-    getAssetAddress,
-    getIfAddress,
-    getWethAddress,
-    _throw,
-    getAssets,
-} from "./utils/helpers/helperUtil";
+import { _throw } from "./utils/common/commonUtil";
+import { getAmmAddress, getInstanceConfig } from "./utils/dao/configDao";
 
 export class SDK {
     private readonly _wallet: Wallet;
+    private readonly _instance: Instance;
 
     private readonly _ch: ClearingHouse;
     private readonly _chv: ClearingHouseViewer;
     private readonly _if: InsuranceFund;
     private readonly _weth: MockWETH;
     /**
-     * @param wallet_ wallet signer used for making transactions
+     * @param params params for initing sdk
+     * @param params.wallet ethers wallet class for signing txs
+     * @param params.instance instance
      */
-    constructor(wallet_: Wallet) {
-        this._wallet = wallet_;
+    constructor(params: { wallet: Wallet; instance: Instance }) {
+        const { wallet, instance } = params;
+        void this._validateWalletAndInstance(wallet, instance);
 
-        this._ch = new Contract(getChAddress(), abis.chAbi, wallet_) as ClearingHouse;
-        this._chv = new Contract(getChvAddress(), abis.chvAbi, wallet_) as ClearingHouseViewer;
-        this._if = new Contract(getIfAddress(), abis.ifAbi, wallet_) as InsuranceFund;
-        this._weth = new Contract(getWethAddress(), abis.mockWethAbi, wallet_) as MockWETH;
+        const { ch, chv, iF, weth } = getInstanceConfig(instance);
+        this._ch = new Contract(ch, abis.chAbi, wallet) as ClearingHouse;
+        this._chv = new Contract(chv, abis.chvAbi, wallet) as ClearingHouseViewer;
+        this._if = new Contract(iF, abis.ifAbi, wallet) as InsuranceFund;
+        this._weth = new Contract(weth, abis.mockWethAbi, wallet) as MockWETH;
+
+        this._wallet = wallet;
+        this._instance = instance;
     }
 
     /**
@@ -70,29 +64,34 @@ export class SDK {
     /**
      * Open a new position
      * @param params params for opening position
-     * @param params.asset the asset to trade eg bayc
-     * @param params.direction long or short
+     * @param params.amm the amm to trade eg bayc
+     * @param params.side buy or sell
      * @param params.margin collateral amount
      * @param params.leverage leverage
      * @returns tx hash
      */
-    public async openPosition(params: OpenPositionParams): Promise<string> {
-        const { asset, direction, margin, leverage, slippagePercent } = params;
+    public async openPosition(params: {
+        amm: Amm;
+        side: Side;
+        margin: number;
+        leverage: number;
+        slippagePercent?: number;
+    }): Promise<string> {
+        const { amm, side, margin, leverage, slippagePercent } = params;
         const notional = toBig(margin).mul(leverage);
-        const side = this._getSide(direction);
-        const fees = await this._calcFee(asset, toWei(notional), side);
+        const fees = await this._calcFee(amm, toWei(notional), side);
         const totalCost = toWei(margin).add(fees);
         await this._checkBalance(totalCost);
         await this._checkAllowance(totalCost);
         const slippageAmount = await this._getSlippageBaseAssetAmount(
-            asset,
+            amm,
             side,
             notional,
             slippagePercent
         );
 
         return await this._openPosition(
-            getAssetAddress(asset),
+            this._getAmmAddress(amm),
             side,
             toDecimal(toWei(margin)),
             toDecimal(toWei(leverage)),
@@ -103,37 +102,41 @@ export class SDK {
     /**
      * Close position
      * @param params params for closing position
-     * @param params.asset asset eg bayc
+     * @param params.amm amm eg bayc
      * @returns tx hash
      */
-    public async closePosition(params: ClosePositionParams): Promise<string> {
-        const { asset, slippagePercent } = params;
-        const { size } = await this._getPosition(asset);
+    public async closePosition(params: { amm: Amm; slippagePercent?: number }): Promise<string> {
+        const { amm, slippagePercent } = params;
+        const { size } = await this._getPosition(amm);
         if (size.eq(0)) {
             _throw("no such position");
         }
         // closing long is equivalent of shorting
         const side = size.gt(0) ? Side.SELL : Side.BUY;
         const slippageAmount = await this._getSlippageQuoteAssetAmount(
-            asset,
+            amm,
             side,
             size,
             slippagePercent
         );
 
-        return await this._closePosition(getAssetAddress(asset), toDecimal(slippageAmount));
+        return await this._closePosition(this._getAmmAddress(amm), toDecimal(slippageAmount));
     }
 
     /**
      * Partially close position
      * @param params params for partially closing position
-     * @param params.asset asset eg bayc
+     * @param params.amm amm eg bayc
      * @param params.partialClosePercent percentage of position to close
      * @returns tx hash
      */
-    public async partialClose(params: PartialCloseParams) {
-        const { asset, partialClosePercent, slippagePercent } = params;
-        const { size } = await this._getPosition(asset);
+    public async partialClose(params: {
+        amm: Amm;
+        partialClosePercent: number;
+        slippagePercent?: number;
+    }) {
+        const { amm, partialClosePercent, slippagePercent } = params;
+        const { size } = await this._getPosition(amm);
         if (size.eq(0)) {
             _throw("no such position");
         }
@@ -141,14 +144,14 @@ export class SDK {
         const partialCloseFraction = toBig(partialClosePercent).div(100);
         const sizeToClose = size.mul(partialCloseFraction).round(0, 0);
         const slippageAmount = await this._getSlippageQuoteAssetAmount(
-            asset,
+            amm,
             side,
             sizeToClose,
             slippagePercent
         );
 
         return await this._partialClose(
-            getAssetAddress(asset),
+            this._getAmmAddress(amm),
             toDecimal(toWei(partialCloseFraction)),
             toDecimal(slippageAmount)
         );
@@ -157,33 +160,33 @@ export class SDK {
     /**
      * Add margin to position. increases margin ratio and position health
      * @param params params for adding margin
-     * @param params.asset asset eg bayc
+     * @param params.amm amm eg bayc
      * @param params.marginToAdd margin to add
      * @returns tx hash
      */
-    public async addMargin(params: AddMarginParams): Promise<string> {
-        const { asset, marginToAdd } = params;
+    public async addMargin(params: { amm: Amm; marginToAdd: number }): Promise<string> {
+        const { amm, marginToAdd } = params;
         await this._checkBalance(toWei(marginToAdd));
         await this._checkAllowance(toWei(marginToAdd));
 
-        return await this._addMargin(getAssetAddress(asset), toDecimal(toWei(marginToAdd)));
+        return await this._addMargin(this._getAmmAddress(amm), toDecimal(toWei(marginToAdd)));
     }
 
     /**
      * Remove margin from position. decreases margin ratio and increases liq price
      * @param params params for removing margin
-     * @param params.asset asset eg bayc
+     * @param params.amm amm eg bayc
      * @param params.marginToRemove margin to remove
      * @returns
      */
-    public async removeMargin(params: RemoveMarginParams): Promise<string> {
-        const { asset, marginToRemove } = params;
-        const { margin } = await this._getPositionWithFundingPayment(asset);
+    public async removeMargin(params: { amm: Amm; marginToRemove: number }): Promise<string> {
+        const { amm, marginToRemove } = params;
+        const { margin } = await this._getPositionWithFundingPayment(amm);
         const { positionNotional, upnl } = await this._getPositionNotionalAndUpnl(
-            asset,
+            amm,
             this._wallet.address
         );
-        const { mmr } = await this._getRatios(asset);
+        const { mmr } = await this._getRatios(amm);
         const newMarginRatio = margin.add(upnl).sub(toWei(marginToRemove)).div(positionNotional);
         if (newMarginRatio.lt(mmr)) {
             _throw(
@@ -191,21 +194,21 @@ export class SDK {
             );
         }
 
-        return await this._removeMargin(getAssetAddress(asset), toDecimal(toWei(marginToRemove)));
+        return await this._removeMargin(this._getAmmAddress(amm), toDecimal(toWei(marginToRemove)));
     }
 
     /**
      * Get position
-     * @param params.asset asset eg bayc
+     * @param params.amm amm eg bayc
      * @returns position
      */
-    public async getPosition(params: GetPositionParams): Promise<PositionDisplay> {
-        const { asset, trader } = params;
-        const { size, margin, openNotional } = await this._getPosition(asset, trader);
-        const liquidationPrice = await this._getLiquidationPrice(asset, trader);
-        const { upnl } = await this._getPositionNotionalAndUpnl(asset, trader);
+    public async getPosition(params: { amm: Amm; trader?: string }): Promise<PositionDisplay> {
+        const { amm, trader } = params;
+        const { size, margin, openNotional } = await this._getPosition(amm, trader);
+        const liquidationPrice = await this._getLiquidationPrice(amm, trader);
+        const { upnl } = await this._getPositionNotionalAndUpnl(amm, trader);
         const { margin: marginWithFunding } = await this._getPositionWithFundingPayment(
-            asset,
+            amm,
             trader
         );
         const pnl = format(fromWei(upnl), 4);
@@ -223,49 +226,49 @@ export class SDK {
 
     /**
      * Get margin ratio. margin ratio = active margin / active notional
-     * @param params.asset asset eg bayc
+     * @param params.amm amm eg bayc
      * @returns margin ratio
      */
-    public async getMarginRatio(params: GetMarginRatioParams): Promise<number> {
-        const { asset, trader } = params;
-        const mr = await this._getMarginRatio(asset, trader);
+    public async getMarginRatio(params: { amm: Amm; trader?: string }): Promise<number> {
+        const { amm, trader } = params;
+        const mr = await this._getMarginRatio(amm, trader);
         return format(fromWei(mr), undefined, true);
     }
 
     /**
      * Get mark price (nftperp price)
-     * @param asset asset eg bayc
+     * @param amm amm eg bayc
      * @returns mark price
      */
-    public async getMarkPrice(asset: Asset) {
-        const spotPrice = await this._getSpotPrice(asset);
+    public async getMarkPrice(amm: Amm) {
+        const spotPrice = await this._getSpotPrice(amm);
         return format(fromWei(spotPrice));
     }
 
     /**
      * Get index price (real price - as per marketplaces)
-     * @param asset asset eg bayc
+     * @param amm amm eg bayc
      * @returns index price
      */
-    public async getIndexPrice(asset: Asset) {
-        const indexPrice = await this._getUnderlyingPrice(asset);
+    public async getIndexPrice(amm: Amm) {
+        const indexPrice = await this._getUnderlyingPrice(amm);
         return format(fromWei(indexPrice));
     }
 
     /**
      * Get funding details
-     * @param asset asset eg bayc
+     * @param amm amm eg bayc
      * @returns funding period and next funding time, prev funding rate (`wei`)
      */
-    public async getFundingInfo(asset: Asset): Promise<{
+    public async getFundingInfo(amm: Amm): Promise<{
         fundingPeriod: number;
         nextFundingTime: number;
         previousFundingPercent: number;
     }> {
-        const assetInstance = this._getAssetInstance(asset);
-        const fundingPeriod = await assetInstance.fundingPeriod();
-        const nextFundingTime = await assetInstance.nextFundingTime();
-        const previousFundingRate = await assetInstance.fundingRate();
+        const ammInstance = this._getAmmInstance(amm);
+        const fundingPeriod = await ammInstance.fundingPeriod();
+        const nextFundingTime = await ammInstance.nextFundingTime();
+        const previousFundingRate = await ammInstance.fundingRate();
         return {
             fundingPeriod: format(toBig(fundingPeriod)),
             nextFundingTime: format(toBig(nextFundingTime)),
@@ -275,18 +278,18 @@ export class SDK {
 
     /**
      * Get asset info
-     * @param asset asset eg bayc
-     * @returns Asset Info
+     * @param amm amm eg bayc
+     * @returns Amm Info
      */
-    public async getAssetInfo(asset: Asset): Promise<AssetInfo> {
-        const markPrice = await this._getSpotPrice(asset);
-        const indexPrice = await this._getUnderlyingPrice(asset);
-        const { nextFundingTime, previousFundingPercent } = await this.getFundingInfo(asset);
+    public async getAmmInfo(amm: Amm): Promise<AmmInfo> {
+        const markPrice = await this._getSpotPrice(amm);
+        const indexPrice = await this._getUnderlyingPrice(amm);
+        const { nextFundingTime, previousFundingPercent } = await this.getFundingInfo(amm);
         const { openInterest, openInterestLongs, openInterestShorts } =
-            await this._getOpenInterestInfo(asset);
-        const { imr, mmr, lfr } = await this._getRatios(asset);
+            await this._getOpenInterestInfo(amm);
+        const { imr, mmr, lfr } = await this._getRatios(amm);
         return {
-            asset: asset.toUpperCase() as Uppercase<Asset>,
+            amm,
             markPrice: format(fromWei(markPrice)),
             indexPrice: format(fromWei(indexPrice)),
             maxLeverage: format(toWei(1).div(imr)),
@@ -301,11 +304,11 @@ export class SDK {
     }
 
     /**
-     * Get supported assets
-     * @returns assets
+     * Get supported Amms
+     * @returns Amms
      */
-    public getSupportedAssets() {
-        return getAssets();
+    public getSupportedAmms(): (keyof typeof Amm)[] {
+        return Object.keys(Amm) as (keyof typeof Amm)[];
     }
 
     //
@@ -314,12 +317,11 @@ export class SDK {
 
     /**
      * get notional longs and shorts
-     * @param asset
      * @returns open interest info in `wei`
      */
-    private async _getOpenInterestInfo(asset: Asset): Promise<OpenInterestInfo> {
+    private async _getOpenInterestInfo(amm: Amm): Promise<OpenInterestInfo> {
         const { openInterest, openInterestLongs, openInterestShorts } =
-            await this._ch.openInterestMap(getAssetAddress(asset));
+            await this._ch.openInterestMap(this._getAmmAddress(amm));
         return {
             openInterestLongs: fromDecimal(openInterestLongs),
             openInterestShorts: fromDecimal(openInterestShorts),
@@ -331,9 +333,9 @@ export class SDK {
      * get spot price
      * @returns spot price in `wei`
      */
-    private async _getSpotPrice(asset: Asset): Promise<Big> {
-        const assetInstance = this._getAssetInstance(asset);
-        const spotPrice = await assetInstance.getSpotPrice();
+    private async _getSpotPrice(amm: Amm): Promise<Big> {
+        const ammInstance = this._getAmmInstance(amm);
+        const spotPrice = await ammInstance.getSpotPrice();
         return fromDecimal(spotPrice);
     }
 
@@ -341,9 +343,9 @@ export class SDK {
      * get underlying price
      * @returns underlying price in `wei`
      */
-    private async _getUnderlyingPrice(asset: Asset): Promise<Big> {
-        const assetInstance = this._getAssetInstance(asset);
-        const underlyingPrice = await assetInstance.getUnderlyingPrice();
+    private async _getUnderlyingPrice(amm: Amm): Promise<Big> {
+        const ammInstance = this._getAmmInstance(amm);
+        const underlyingPrice = await ammInstance.getUnderlyingPrice();
         return fromDecimal(underlyingPrice);
     }
 
@@ -351,9 +353,9 @@ export class SDK {
      * get trader position
      * @returns position (size, margin, notional) in `wei`
      */
-    private async _getPosition(asset: Asset, trader = this._wallet.address): Promise<Position> {
+    private async _getPosition(amm: Amm, trader = this._wallet.address): Promise<Position> {
         const { size, margin, openNotional } = await this._ch.getPosition(
-            getAssetAddress(asset),
+            this._getAmmAddress(amm),
             trader
         );
         return {
@@ -367,10 +369,10 @@ export class SDK {
      * get liquidation price
      * https://www.notion.so/New-liquidation-price-formula-exact-solution-6fc007bd28134f1397d13c8a6e6c1fbc
      */
-    private async _getLiquidationPrice(asset: Asset, trader = this._wallet.address) {
-        const ratios = await this._getRatios(asset);
-        const position = await this._getPositionWithFundingPayment(asset, trader);
-        const reserves = await this._getReserves(asset);
+    private async _getLiquidationPrice(amm: Amm, trader = this._wallet.address) {
+        const ratios = await this._getRatios(amm);
+        const position = await this._getPositionWithFundingPayment(amm, trader);
+        const reserves = await this._getReserves(amm);
         const size = fromWei(position.size);
         const margin = fromWei(position.margin);
         const openNotional = fromWei(position.openNotional);
@@ -395,9 +397,9 @@ export class SDK {
      * get reserves
      * @returns quote asset reserve (y) and base asset reserve (x) in `wei`
      */
-    private async _getReserves(asset: Asset): Promise<Reserves> {
-        const assetInstance = this._getAssetInstance(asset);
-        const [quoteAssetReserve, baseAssetReserve] = await assetInstance.getReserves();
+    private async _getReserves(amm: Amm): Promise<Reserves> {
+        const ammInstance = this._getAmmInstance(amm);
+        const [quoteAssetReserve, baseAssetReserve] = await ammInstance.getReserves();
         return {
             quoteAssetReserve: fromDecimal(quoteAssetReserve),
             baseAssetReserve: fromDecimal(baseAssetReserve),
@@ -409,11 +411,11 @@ export class SDK {
      * @returns position (size, margin, notional) in `wei`
      */
     private async _getPositionWithFundingPayment(
-        asset: Asset,
+        amm: Amm,
         trader = this._wallet.address
     ): Promise<Position> {
         const { size, margin, openNotional } =
-            await this._chv.getPersonalPositionWithFundingPayment(getAssetAddress(asset), trader);
+            await this._chv.getPersonalPositionWithFundingPayment(this._getAmmAddress(amm), trader);
         return {
             size: fromDecimal(size),
             margin: fromDecimal(margin),
@@ -425,8 +427,8 @@ export class SDK {
      * get margin ratio
      * @returns margin ratio in `wei`
      */
-    private async _getMarginRatio(asset: Asset, trader = this._wallet.address): Promise<Big> {
-        const marginRatio = await this._ch.getMarginRatio(getAssetAddress(asset), trader);
+    private async _getMarginRatio(amm: Amm, trader = this._wallet.address): Promise<Big> {
+        const marginRatio = await this._ch.getMarginRatio(this._getAmmAddress(amm), trader);
         return fromDecimal(marginRatio);
     }
 
@@ -434,9 +436,9 @@ export class SDK {
      * get active notional and upnl
      * @returns pn and upnl in `wei`
      */
-    private async _getPositionNotionalAndUpnl(asset: Asset, trader = this._wallet.address) {
+    private async _getPositionNotionalAndUpnl(amm: Amm, trader = this._wallet.address) {
         const _ = await this._ch.getPositionNotionalAndUnrealizedPnl(
-            getAssetAddress(asset),
+            this._getAmmAddress(amm),
             trader,
             0
         );
@@ -450,9 +452,9 @@ export class SDK {
      * get imr, mmr, plr, lfr
      * @returns ratios in `wei`
      */
-    private async _getRatios(asset: Asset): Promise<Ratios> {
-        const assetInstance = this._getAssetInstance(asset);
-        const ratios = await assetInstance.getRatios();
+    private async _getRatios(amm: Amm): Promise<Ratios> {
+        const ammInstance = this._getAmmInstance(amm);
+        const ratios = await ammInstance.getRatios();
         return {
             imr: fromDecimal(ratios.initMarginRatio),
             mmr: fromDecimal(ratios.maintenanceMarginRatio),
@@ -466,9 +468,9 @@ export class SDK {
      * @requires notional in `wei`
      * @returns fees in `wei`
      */
-    private async _calcFee(asset: Asset, notional: Big, side: Side) {
-        const assetInstance = this._getAssetInstance(asset);
-        const fees = await assetInstance.calcFee(toDecimal(notional), side);
+    private async _calcFee(amm: Amm, notional: Big, side: Side) {
+        const ammInstance = this._getAmmInstance(amm);
+        const fees = await ammInstance.calcFee(toDecimal(notional), side);
         return fromDecimal(fees[0]).add(fromDecimal(fees[1]));
     }
 
@@ -477,13 +479,9 @@ export class SDK {
      * @requires notional in `eth`
      * @returns base asset out in `wei`
      */
-    private async _getBaseAssetOut(
-        asset: Asset,
-        dir: DirectionOfAsset,
-        notional: Big
-    ): Promise<Big> {
-        const assetInstance = this._getAssetInstance(asset);
-        const baseAssetOut = await assetInstance.getInputPrice(dir, toDecimal(toWei(notional)));
+    private async _getBaseAssetOut(amm: Amm, dir: DirectionOfAsset, notional: Big): Promise<Big> {
+        const ammInstance = this._getAmmInstance(amm);
+        const baseAssetOut = await ammInstance.getInputPrice(dir, toDecimal(toWei(notional)));
         return fromDecimal(baseAssetOut);
     }
 
@@ -492,9 +490,9 @@ export class SDK {
      * @requires size in `wei`
      * @returns quote asset out in `wei`
      */
-    private async _getQuoteAssetOut(asset: Asset, dir: DirectionOfAsset, size: Big): Promise<Big> {
-        const assetInstance = this._getAssetInstance(asset);
-        const quoteAssetOut = await assetInstance.getOutputPrice(dir, toDecimal(size));
+    private async _getQuoteAssetOut(amm: Amm, dir: DirectionOfAsset, size: Big): Promise<Big> {
+        const ammInstance = this._getAmmInstance(amm);
+        const quoteAssetOut = await ammInstance.getOutputPrice(dir, toDecimal(size));
         return fromDecimal(quoteAssetOut);
     }
 
@@ -504,7 +502,7 @@ export class SDK {
      * @returns base asset amount limit in `wei`
      */
     private async _getSlippageBaseAssetAmount(
-        asset: Asset,
+        amm: Amm,
         side: Side,
         notional: Big,
         slippagePercent?: number
@@ -515,7 +513,7 @@ export class SDK {
         // direction of quote
         const dir =
             side === Side.BUY ? DirectionOfAsset.ADD_TO_AMM : DirectionOfAsset.REMOVE_FROM_AMM;
-        const baseAssetOut = await this._getBaseAssetOut(asset, dir, notional);
+        const baseAssetOut = await this._getBaseAssetOut(amm, dir, notional);
         const slippageFraction = Big(slippagePercent).div(100);
         if (side === Side.BUY) {
             return baseAssetOut.mul(toBig(1).sub(slippageFraction)).round(0, 0); // round down
@@ -529,7 +527,7 @@ export class SDK {
      * @returns quote asset amount limit `wei`
      */
     private async _getSlippageQuoteAssetAmount(
-        asset: Asset,
+        amm: Amm,
         side: Side,
         size: Big,
         slippagePercent?: number
@@ -540,7 +538,7 @@ export class SDK {
         // direction of base
         const dir =
             side === Side.SELL ? DirectionOfAsset.ADD_TO_AMM : DirectionOfAsset.REMOVE_FROM_AMM;
-        const quoteAssetOut = await this._getQuoteAssetOut(asset, dir, size);
+        const quoteAssetOut = await this._getQuoteAssetOut(amm, dir, size);
         const slippageFraction = Big(slippagePercent).div(100);
         if (side === Side.SELL) {
             return quoteAssetOut.mul(toBig(1).sub(slippageFraction)).round(0, 0);
@@ -663,17 +661,26 @@ export class SDK {
     }
 
     /**
-     * get side based on direction.
-     * @returns side
+     * get amm instance to interact with amm
      */
-    private _getSide(direction: Direction): Side {
-        return direction === "long" ? Side.BUY : Side.SELL;
+    private _getAmmInstance(amm: Amm): AmmContract {
+        return new Contract(this._getAmmAddress(amm), abis.ammAbi, this._wallet) as AmmContract;
     }
 
     /**
-     * get amm instance to interact with amm
+     * get amm address
      */
-    private _getAssetInstance(asset: Asset): Amm {
-        return new Contract(getAssetAddress(asset), abis.ammAbi, this._wallet) as Amm;
+    private _getAmmAddress(amm: Amm): string {
+        return getAmmAddress(this._instance, amm);
+    }
+
+    /**
+     * validate rpc and instance match
+     */
+    private async _validateWalletAndInstance(wallet: Wallet, instance: Instance) {
+        const { chainId } = await wallet.provider.getNetwork();
+        if (chainId !== getInstanceConfig(instance).chainId) {
+            _throw("provider rpc and instance do not match");
+        }
     }
 }

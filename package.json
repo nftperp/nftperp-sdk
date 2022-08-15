@@ -2,8 +2,8 @@
     "name": "@nftperp/sdk",
     "version": "2.0.1",
     "description": "SDK for nftperp protocol",
-    "main": "dist/sdk.js",
-    "types": "dist/sdk.d.ts",
+    "main": "sdk.js",
+    "types": "sdk.d.ts",
     "scripts": {
         "build": "tsc",
         "start": "node dist/sdk.js",
@@ -15,9 +15,6 @@
         "type": "git",
         "url": "https://github.com/nftperp/nftperp-sdk.git"
     },
-    "files": [
-        "dist/"
-    ],
     "keywords": [
         "sdk",
         "nft",

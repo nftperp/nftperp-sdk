@@ -1,6 +1,6 @@
 import Big from "big.js";
 import { BigNumber } from "ethers";
-import { Decimal } from "../../types/types";
+import { Decimal } from "../../types";
 
 export const toDecimal = (value: Big | BigNumber | number | string): Decimal => {
     return { d: value.toString() };

@@ -49,7 +49,8 @@ npm i ethers
 
 ```ts
 import { ethers } from "ethers";
-import { SDK, Instance } from "@nftperp/sdk";
+import { SDK } from "@nftperp/sdk";
+import { Instance } from "@nftperp/sdk/types";
 
 /**
 the general rpc url for arb mainnet is "https://arb1.arbitrum.io/rpc"
@@ -69,7 +70,7 @@ await nftperp.useFaucet(); // grants 5 eth
 #### Open a position
 
 ```ts
-import { Amm, Side } from "@nftperp/sdk";
+import { Amm, Side } from "@nftperp/sdk/types";
 
 const hash = await nftperp.openPosition({
     amm: Amm.BAYC,

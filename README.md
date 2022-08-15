@@ -82,7 +82,7 @@ const hash = await nftperp.openPosition({
 _note_: _currently limited nft collections are supported. to get a list of supported assets do:_
 
 ```ts
-console.log(nftperp.getSupportedAssets(Instance.BETA));
+console.log(nftperp.getSupportedAmms(Instance.BETA));
 /**
 [ 'BAYC', 'MOONBIRDS', 'MAYC', 'DOODLES', 'CLONEX' ]
 */

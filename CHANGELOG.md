@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.1](https://github.com/nftperp/nftperp-sdk/compare/v2.0.0...v2.0.1) (2022-08-15)
+
+
+### Bug Fixes
+
+* get supported amms method ([89be8b9](https://github.com/nftperp/nftperp-sdk/commit/89be8b9a566a1ecc8ab96893f537ec49c139ffc3))
+
 ## [2.0.0](https://github.com/nftperp/nftperp-sdk/compare/v1.0.1...v2.0.0) (2022-08-15)
 
 

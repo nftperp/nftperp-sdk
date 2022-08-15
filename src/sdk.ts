@@ -11,7 +11,7 @@ import {
     Ratios,
     Reserves,
     Side,
-} from "./types/types";
+} from "./types";
 import {
     Amm as AmmContract,
     ClearingHouse,

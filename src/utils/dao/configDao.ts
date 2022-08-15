@@ -1,5 +1,5 @@
 import { config } from "../../config";
-import { Amm, Instance, InstanceConfig } from "../../types/types";
+import { Amm, Instance, InstanceConfig } from "../../types";
 import { _throw } from "../common/commonUtil";
 
 export const getInstanceConfig = (instance: Instance): InstanceConfig => {

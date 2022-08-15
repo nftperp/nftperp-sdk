@@ -307,8 +307,9 @@ export class SDK {
      * Get supported Amms
      * @returns Amms
      */
-    public getSupportedAmms(): (keyof typeof Amm)[] {
-        return Object.keys(Amm) as (keyof typeof Amm)[];
+    public getSupportedAmms(instance: Instance): (keyof typeof Amm)[] {
+        const { amms } = getInstanceConfig(instance);
+        return Object.keys(amms) as (keyof typeof Amm)[];
     }
 
     //

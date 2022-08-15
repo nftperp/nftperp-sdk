@@ -323,6 +323,7 @@ export class SDK {
         return {
             openInterestLongs: fromDecimal(openInterestLongs),
             openInterestShorts: fromDecimal(openInterestShorts),
+            ratio: fromDecimal(openInterestLongs).div(fromDecimal(openInterestShorts)).round(0),
             openInterest: fromDecimal(openInterest),
         };
     }

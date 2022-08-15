@@ -48,12 +48,11 @@ npm i ethers
 #### Setup
 
 ```ts
-import { ethers } from "ethers";
+import ethers from "ethers";
 import { SDK } from "@nftperp/sdk";
 
 /**
-the general rpc url for arb mainnet is "https://arb1.arbitrum.io/rpc"
-you can also use a personal one from alchemy (https://www.alchemy.com/)
+the general rpc url for arb mainnet is "https://arb1.arbitrum.io/rpc", you can also use a personal one from alchemy (https://www.alchemy.com/)
 */
 const provider = new ethers.providers.JsonRpcProvider("<your-rpc-url>");
 const wallet = new ethers.Wallet("<your-private-key>", provider);

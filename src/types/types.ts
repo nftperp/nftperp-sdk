@@ -101,6 +101,7 @@ export interface OpenInterestInfo {
     openInterest: Big;
     openInterestLongs: Big;
     openInterestShorts: Big;
+    ratio: Big;
 }
 
 export interface AssetInfo {

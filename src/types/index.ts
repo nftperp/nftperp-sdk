@@ -59,10 +59,11 @@ export interface PositionDisplay {
     size: number;
     margin: number;
     leverage: number;
+    notional: number;
     pnl: number;
-    funding: number;
-    entryPrice: number;
-    liquidationPrice: number;
+    fundingPayment: number;
+    entryPrice: number | null;
+    liquidationPrice: number | null;
 }
 
 export interface Reserves {

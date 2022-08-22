@@ -57,6 +57,9 @@ export class SDK {
      * @returns `5` mock weth
      */
     public async useFaucet(): Promise<string> {
+        if (this._instance !== Instance.BETA) {
+            _throw("faucet is only available for beta instance");
+        }
         const tx = await this._weth.mint();
         return tx.hash;
     }

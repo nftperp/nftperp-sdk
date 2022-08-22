@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.5](https://github.com/nftperp/nftperp-sdk/compare/v2.0.4...v2.0.5) (2022-08-22)
+
+
+### Bug Fixes
+
+* division by zero when no position ([70776c4](https://github.com/nftperp/nftperp-sdk/commit/70776c44dc6cbc1edc7c553a67bb9157ce5b1d25))
+* **signer:** fetching signer address ([500fcc6](https://github.com/nftperp/nftperp-sdk/commit/500fcc65784a40901609cf6ad0d5c139eff6b179))
+
 ### [2.0.3](https://github.com/nftperp/nftperp-sdk/compare/v2.0.2...v2.0.3) (2022-08-15)
 
 

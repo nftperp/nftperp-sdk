@@ -92,15 +92,14 @@ console.log(nftperp.getSupportedAmms(Instance.BETA));
 #### Get postion info
 
 ```ts
-const position = await nftperp.getPosition({
-    amm: Amm.BAYC,
-});
+const position = await nftperp.getPosition(Amm.BAYC);
 console.log(position);
 /**
 {
   size: 0.003,
   margin: 0.1,
   leverage: 3,
+  notional: 0.3,
   pnl: 0,
   funding: 0,
   entryPrice: 82.981,

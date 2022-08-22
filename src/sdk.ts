@@ -206,19 +206,19 @@ export class SDK {
 
     /**
      * Get position
-     * @param params.amm amm eg bayc
+     * @param amm amm eg bayc
      * @returns position
      */
-    public async getPosition(params: { amm: Amm; trader?: string }): Promise<PositionDisplay> {
-        const { amm, trader } = params;
+    public async getPosition(amm: Amm, trader?: string): Promise<PositionDisplay> {
         const { size, margin, openNotional } = await this._getPosition(amm, trader);
         if (size.eq(0)) {
             return {
                 size: 0,
                 margin: 0,
                 leverage: 0,
+                notional: 0,
                 pnl: 0,
-                funding: 0,
+                fundingPayment: 0,
                 entryPrice: null,
                 liquidationPrice: null,
             };
@@ -230,13 +230,14 @@ export class SDK {
             trader
         );
         const pnl = format(fromWei(upnl), 4);
-        const funding = format(fromWei(marginWithFunding.sub(margin)), 4);
+        const fundingPayment = format(fromWei(marginWithFunding.sub(margin)), 4);
         return {
             size: format(fromWei(size)),
             margin: format(fromWei(margin)),
             leverage: format(openNotional.div(margin)),
+            notional: format(fromWei(openNotional)),
             pnl: pnl === 0 ? 0 : pnl, // to remove -0
-            funding: funding === 0 ? 0 : funding,
+            fundingPayment: fundingPayment === 0 ? 0 : fundingPayment,
             entryPrice: format(openNotional.div(size.abs())),
             liquidationPrice: format(liquidationPrice),
         };

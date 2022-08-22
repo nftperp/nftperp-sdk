@@ -112,7 +112,7 @@ export class SDK {
         const { amm, slippagePercent } = params;
         const { size } = await this._getPosition(amm);
         if (size.eq(0)) {
-            _throw("no such position");
+            _throw("no position found");
         }
         // closing long is equivalent of shorting
         const side = size.gt(0) ? Side.SELL : Side.BUY;
@@ -169,6 +169,10 @@ export class SDK {
      */
     public async addMargin(params: { amm: Amm; marginToAdd: number }): Promise<string> {
         const { amm, marginToAdd } = params;
+        const { size } = await this._getPosition(amm);
+        if (size.eq(0)) {
+            _throw("no position found");
+        }
         await this._checkBalance(toWei(marginToAdd));
         await this._checkAllowance(toWei(marginToAdd));
 
@@ -184,7 +188,10 @@ export class SDK {
      */
     public async removeMargin(params: { amm: Amm; marginToRemove: number }): Promise<string> {
         const { amm, marginToRemove } = params;
-        const { margin } = await this._getPositionWithFundingPayment(amm);
+        const { size, margin } = await this._getPositionWithFundingPayment(amm);
+        if (size.eq(0)) {
+            _throw("no position found");
+        }
         const { positionNotional, upnl } = await this._getPositionNotionalAndUpnl(amm);
         const { mmr } = await this._getRatios(amm);
         const newMarginRatio = margin.add(upnl).sub(toWei(marginToRemove)).div(positionNotional);
@@ -205,6 +212,17 @@ export class SDK {
     public async getPosition(params: { amm: Amm; trader?: string }): Promise<PositionDisplay> {
         const { amm, trader } = params;
         const { size, margin, openNotional } = await this._getPosition(amm, trader);
+        if (size.eq(0)) {
+            return {
+                size: 0,
+                margin: 0,
+                leverage: 0,
+                pnl: 0,
+                funding: 0,
+                entryPrice: null,
+                liquidationPrice: null,
+            };
+        }
         const liquidationPrice = await this._getLiquidationPrice(amm, trader);
         const { upnl } = await this._getPositionNotionalAndUpnl(amm, trader);
         const { margin: marginWithFunding } = await this._getPositionWithFundingPayment(
@@ -369,17 +387,20 @@ export class SDK {
     /**
      * get liquidation price
      * https://www.notion.so/New-liquidation-price-formula-exact-solution-6fc007bd28134f1397d13c8a6e6c1fbc
+     *
+     * @returns liq price in `eth`
      */
-    private async _getLiquidationPrice(amm: Amm, trader?: string) {
+    private async _getLiquidationPrice(amm: Amm, trader?: string): Promise<Big> {
         const ratios = await this._getRatios(amm);
         const position = await this._getPositionWithFundingPayment(amm, trader);
         const reserves = await this._getReserves(amm);
         const size = fromWei(position.size);
+        if (size.eq(0)) return toBig(0);
         const margin = fromWei(position.margin);
         const openNotional = fromWei(position.openNotional);
         const mmr = fromWei(ratios.mmr);
         const k = fromWei(reserves.quoteAssetReserve).mul(fromWei(reserves.baseAssetReserve));
-        const pn = size.gte(0)
+        const pn = size.gt(0)
             ? margin.minus(openNotional).div(mmr.minus(1))
             : margin.add(openNotional).div(mmr.add(1));
         const x = size.gte(0)

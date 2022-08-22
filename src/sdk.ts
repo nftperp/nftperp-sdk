@@ -182,10 +182,7 @@ export class SDK {
     public async removeMargin(params: { amm: Amm; marginToRemove: number }): Promise<string> {
         const { amm, marginToRemove } = params;
         const { margin } = await this._getPositionWithFundingPayment(amm);
-        const { positionNotional, upnl } = await this._getPositionNotionalAndUpnl(
-            amm,
-            this._wallet.address
-        );
+        const { positionNotional, upnl } = await this._getPositionNotionalAndUpnl(amm);
         const { mmr } = await this._getRatios(amm);
         const newMarginRatio = margin.add(upnl).sub(toWei(marginToRemove)).div(positionNotional);
         if (newMarginRatio.lt(mmr)) {
@@ -354,10 +351,10 @@ export class SDK {
      * get trader position
      * @returns position (size, margin, notional) in `wei`
      */
-    private async _getPosition(amm: Amm, trader = this._wallet.address): Promise<Position> {
+    private async _getPosition(amm: Amm, trader?: string): Promise<Position> {
         const { size, margin, openNotional } = await this._ch.getPosition(
             this._getAmmAddress(amm),
-            trader
+            trader ?? (await this._getAddress())
         );
         return {
             size: fromDecimal(size),
@@ -370,7 +367,7 @@ export class SDK {
      * get liquidation price
      * https://www.notion.so/New-liquidation-price-formula-exact-solution-6fc007bd28134f1397d13c8a6e6c1fbc
      */
-    private async _getLiquidationPrice(amm: Amm, trader = this._wallet.address) {
+    private async _getLiquidationPrice(amm: Amm, trader?: string) {
         const ratios = await this._getRatios(amm);
         const position = await this._getPositionWithFundingPayment(amm, trader);
         const reserves = await this._getReserves(amm);
@@ -411,12 +408,12 @@ export class SDK {
      * get position with funding payment (margin is inclusive of funding)
      * @returns position (size, margin, notional) in `wei`
      */
-    private async _getPositionWithFundingPayment(
-        amm: Amm,
-        trader = this._wallet.address
-    ): Promise<Position> {
+    private async _getPositionWithFundingPayment(amm: Amm, trader?: string): Promise<Position> {
         const { size, margin, openNotional } =
-            await this._chv.getPersonalPositionWithFundingPayment(this._getAmmAddress(amm), trader);
+            await this._chv.getPersonalPositionWithFundingPayment(
+                this._getAmmAddress(amm),
+                trader ?? (await this._getAddress())
+            );
         return {
             size: fromDecimal(size),
             margin: fromDecimal(margin),
@@ -428,8 +425,11 @@ export class SDK {
      * get margin ratio
      * @returns margin ratio in `wei`
      */
-    private async _getMarginRatio(amm: Amm, trader = this._wallet.address): Promise<Big> {
-        const marginRatio = await this._ch.getMarginRatio(this._getAmmAddress(amm), trader);
+    private async _getMarginRatio(amm: Amm, trader?: string): Promise<Big> {
+        const marginRatio = await this._ch.getMarginRatio(
+            this._getAmmAddress(amm),
+            trader ?? (await this._getAddress())
+        );
         return fromDecimal(marginRatio);
     }
 
@@ -437,10 +437,10 @@ export class SDK {
      * get active notional and upnl
      * @returns pn and upnl in `wei`
      */
-    private async _getPositionNotionalAndUpnl(amm: Amm, trader = this._wallet.address) {
+    private async _getPositionNotionalAndUpnl(amm: Amm, trader?: string) {
         const _ = await this._ch.getPositionNotionalAndUnrealizedPnl(
             this._getAmmAddress(amm),
-            trader,
+            trader ?? (await this._getAddress()),
             0
         );
         return {
@@ -552,7 +552,7 @@ export class SDK {
      * @returns balance in `wei`
      */
     private async _getBalance(): Promise<Big> {
-        return toBig(await this._weth.balanceOf(this._wallet.address));
+        return toBig(await this._weth.balanceOf(await this._getAddress()));
     }
 
     /**
@@ -571,7 +571,7 @@ export class SDK {
      * @returns allowance in `wei`
      */
     private async _getAllowance(): Promise<Big> {
-        return toBig(await this._weth.allowance(this._wallet.address, this._ch.address));
+        return toBig(await this._weth.allowance(await this._getAddress(), this._ch.address));
     }
 
     /**
@@ -683,5 +683,14 @@ export class SDK {
         if (chainId !== getInstanceConfig(instance).chainId) {
             _throw("provider rpc and instance do not match");
         }
+    }
+
+    /**
+     * get signer address
+     */
+    private async _getAddress(): Promise<string> {
+        const addy = this._wallet.address ?? (await this._wallet.getAddress());
+        if (!addy) _throw("signer has no account attached");
+        return addy;
     }
 }

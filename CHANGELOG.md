@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.6](https://github.com/nftperp/nftperp-sdk/compare/v2.0.5...v2.0.6) (2022-09-13)
+
+
+### Bug Fixes
+
+* div by zero in liq price calc when leverage is 1 ([9f5f250](https://github.com/nftperp/nftperp-sdk/commit/9f5f25018259a1b83f58a06ea0c24dd564d31085))
+
 ### [2.0.5](https://github.com/nftperp/nftperp-sdk/compare/v2.0.4...v2.0.5) (2022-08-22)
 
 

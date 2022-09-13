@@ -392,11 +392,14 @@ export class SDK {
      * @returns liq price in `eth`
      */
     private async _getLiquidationPrice(amm: Amm, trader?: string): Promise<Big> {
-        const ratios = await this._getRatios(amm);
         const position = await this._getPositionWithFundingPayment(amm, trader);
-        const reserves = await this._getReserves(amm);
         const size = fromWei(position.size);
         if (size.eq(0)) return toBig(0);
+        const mr = fromWei(await this._getMarginRatio(amm, trader));
+        const leverage = toBig(1).div(mr);
+        if (leverage.lt(1.0001)) return toBig(0);
+        const ratios = await this._getRatios(amm);
+        const reserves = await this._getReserves(amm);
         const margin = fromWei(position.margin);
         const openNotional = fromWei(position.openNotional);
         const mmr = fromWei(ratios.mmr);

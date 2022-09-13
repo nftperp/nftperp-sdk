@@ -38,8 +38,8 @@ npm i ethers
 -   `side` direction of trade. _long_ or _short_.
 -   `margin` collateral amount. this is the amount you risk on liquidation.
 -   `notional` total value of position _margin x leverage_.
--   `mark price` nftperp's price of the asset.
--   `index price` actual price of the asset. _floor from marketplaces_.
+-   `mark price` nftperp's price of the amm.
+-   `index price` actual price of the amm. _floor from marketplaces_.
 -   `margin ratio` margin to notional ratio.
 -   `maintenance margin ratio` minimum margin ratio to be maintained to avoid liquidation.
 
@@ -80,7 +80,7 @@ const hash = await nftperp.openPosition({
 });
 ```
 
-_note_: _currently limited nft collections are supported. to get a list of supported assets do:_
+_note_: _currently limited nft collections are supported. to get a list of supported amms do:_
 
 ```ts
 console.log(nftperp.getSupportedAmms(Instance.BETA));
@@ -116,14 +116,14 @@ const hash = await nftperp.closePosition({
 });
 ```
 
-#### Get asset info
+#### Get amm info
 
 ```ts
 const ammInfo = await nftperp.getAmmInfo(Amm.BAYC);
 console.log(ammInfo);
 /**
 {
-  asset: 'BAYC',
+  amm: 'BAYC',
   markPrice: 82.795,
   indexPrice: 84,
   maxLeverage: 5,

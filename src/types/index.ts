@@ -1,28 +1,26 @@
-import Big from "big.js";
 import { BigNumber } from "ethers";
+export * from "./api";
 
 // declare assets here
 export enum Amm {
     BAYC = "BAYC",
-    MOONBIRDS = "MOONBIRDS",
+    MILADY = "MILADY",
+    PUNKS = "PUNKS",
+    AZUKI = "AZUKI",
     MAYC = "MAYC",
     DOODLES = "DOODLES",
-    CLONEX = "CLONEX",
+    MOONBIRDS = "MOONBIRDS",
+    BGAN = "BGAN",
+    GOBBLERS = "GOBBLERS",
 }
 
 export enum Side {
-    BUY, // long
-    SELL, // short
-}
-
-export enum DirectionOfAsset {
-    ADD_TO_AMM,
-    REMOVE_FROM_AMM,
+    BUY = "BUY", // long
+    SELL = "SELL", // short
 }
 
 export enum Instance {
-    BETA = "BETA",
-    HACKATHON = "HACKATHON",
+    TRADING_COMP = "TRADING_COMP",
 }
 
 export type InstanceConfig = {
@@ -38,55 +36,6 @@ export type InstanceConfig = {
 
 export type Config = {
     [key in Instance]: InstanceConfig;
-};
+} & { API_BASE_URL: string };
 
 export type Decimal = { d: string | BigNumber };
-
-export interface Position {
-    size: Big;
-    margin: Big;
-    openNotional: Big;
-}
-
-export interface Ratios {
-    imr: Big;
-    mmr: Big;
-    plr: Big;
-    lfr: Big;
-}
-
-export interface PositionDisplay {
-    size: number;
-    margin: number;
-    leverage: number;
-    notional: number;
-    pnl: number;
-    fundingPayment: number;
-    entryPrice: number | null;
-    liquidationPrice: number | null;
-}
-
-export interface Reserves {
-    quoteAssetReserve: Big;
-    baseAssetReserve: Big;
-}
-
-export interface OpenInterestInfo {
-    openInterest: Big;
-    openInterestLongs: Big;
-    openInterestShorts: Big;
-}
-
-export interface AmmInfo {
-    amm: Amm;
-    markPrice: number;
-    indexPrice: number;
-    maxLeverage: number;
-    maintenanceMarginPercent: number;
-    fullLiquidationPercent: number;
-    previousFundingPercent: number;
-    nextFundingTime: number;
-    openInterest: number;
-    openInterestLongs: number;
-    openInterestShorts: number;
-}

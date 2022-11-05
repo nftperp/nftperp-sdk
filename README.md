@@ -6,7 +6,7 @@ SDK to interact with the nftperp protocol ([docs](https://nftperp.notion.site/nf
 
 _tldr; nftperp is a derivates platform for nfts. for the first time ever, short nfts with leverage_
 
-The protocol is currently in BETA on arbitrum mainnet ([dapp](https://staging.nftperp.xyz)). it uses fake eth for paper trading, which can be obtained from faucet on website/sdk
+The protocol is currently in BETA on arbitrum mainnet ([dapp](https://staging.nftperp.xyz)). it uses fake eth for paper trading, which can be obtained from faucet on website
 
 ![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)
 
@@ -32,17 +32,6 @@ Also requires `ethers` library
 npm i ethers
 ```
 
-### Terminology
-
--   `amm` the nft collection to trade. synonymous to _market pair_, _asset_.
--   `side` direction of trade. _long_ or _short_.
--   `margin` collateral amount. this is the amount you risk on liquidation.
--   `notional` total value of position _margin x leverage_.
--   `mark price` nftperp's price of the amm.
--   `index price` actual price of the amm. _floor from marketplaces_.
--   `margin ratio` margin to notional ratio.
--   `maintenance margin ratio` minimum margin ratio to be maintained to avoid liquidation.
-
 ### Usage
 
 #### Setup
@@ -54,17 +43,17 @@ import { Instance } from "@nftperp/sdk/types";
 
 /**
 the general rpc url for arb mainnet is "https://arb1.arbitrum.io/rpc"
-you can also use a personal one from alchemy (https://www.alchemy.com/)
+recommended using one from infura/alchemy
 */
 const provider = new ethers.providers.JsonRpcProvider("<your-rpc-url>");
 const wallet = new ethers.Wallet("<your-private-key>", provider);
-const nftperp = new SDK({ wallet, instance: Instance.BETA });
+const nftperp = new SDK({ wallet, instance: Instance.TRADING_COMP });
 ```
 
-#### Obtaining paper ETH from faucet
+#### Obtaining mock WETH from faucet
 
 ```ts
-await nftperp.useFaucet(); // grants 5 eth
+await nftperp.faucet(); // grants 5 mock weth
 ```
 
 #### Open a position
@@ -75,40 +64,27 @@ import { Amm, Side } from "@nftperp/sdk/types";
 const hash = await nftperp.openPosition({
     amm: Amm.BAYC,
     side: Side.BUY,
-    margin: 0.1, // this means 0.1 eth
+    amount: 0.1, // 0.1 eth
     leverage: 3,
 });
 ```
 
-_note_: _currently limited nft collections are supported. to get a list of supported amms do:_
+_note_: _to get a list of supported amms do:_
 
 ```ts
 console.log(nftperp.getSupportedAmms(Instance.BETA));
 /**
-[ 'BAYC', 'MOONBIRDS', 'MAYC', 'DOODLES', 'CLONEX' ]
+[ 'BAYC', 'MILADY', 'AZUKI', '...' ]
 */
 ```
 
-#### Get postion info
+#### Get postion
 
 ```ts
 const position = await nftperp.getPosition(Amm.BAYC);
-console.log(position);
-/**
-{
-  size: 0.003,
-  margin: 0.1,
-  leverage: 3,
-  notional: 0.3,
-  pnl: 0,
-  funding: 0,
-  entryPrice: 82.981,
-  liquidationPrice: 63.224
-}
-*/
 ```
 
-#### Close a position
+#### Close position
 
 ```ts
 const hash = await nftperp.closePosition({
@@ -116,24 +92,52 @@ const hash = await nftperp.closePosition({
 });
 ```
 
-#### Get amm info
+#### Calculate fee on position
 
 ```ts
-const ammInfo = await nftperp.getAmmInfo(Amm.BAYC);
-console.log(ammInfo);
-/**
-{
-  amm: 'BAYC',
-  markPrice: 82.795,
-  indexPrice: 84,
-  maxLeverage: 5,
-  maintenanceMarginPercent: 12.5,
-  fullLiquidationPercent: 10,
-  previousFundingPercent: -0.662,
-  nextFundingTime: 1660194024,
-  openInterest: 3583.484,
-  openInterestLongs: 2581.935,
-  openInterestShorts: 1001.548
-}
-*/
+const ammInfo = await nftperp.calcFee({
+    amm: Amm.BAYC,
+    amount: 1,
+    leverage: 1,
+    side: Side.BUY,
+    open: true, // true for opening pos, false for closing
+});
+```
+
+#### Calculate open position transaction summary
+
+```ts
+const ammInfo = await nftperp.getOpenPosTxSummary({
+    amm: Amm.BAYC,
+    amount: 1,
+    leverage: 1,
+    side: Side.BUY,
+});
+```
+
+#### Calculate close position transaction summary
+
+```ts
+const ammInfo = await nftperp.getClosePosTxSummary({
+    amm: Amm.BAYC,
+    closePercent: 100,
+});
+```
+
+#### Get mark price
+
+```ts
+const ammInfo = await nftperp.getMarkPrice(Amm.BAYC);
+```
+
+#### Get index price
+
+```ts
+const ammInfo = await nftperp.getIndexPrice(Amm.BAYC);
+```
+
+#### Get funding info
+
+```ts
+const ammInfo = await nftperp.getFundingInfo(Amm.BAYC);
 ```

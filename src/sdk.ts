@@ -43,6 +43,16 @@ export class SDK {
     }
 
     /**
+     * use trading comp faucet
+     * grants 5 `mock weth`
+     * @returns tx hash
+     */
+    public async faucet(): Promise<string> {
+        const tx = await this._weth.faucet();
+        return tx.hash;
+    }
+
+    /**
      * Open a new position
      * @param params params for opening position
      * @param params.amm the amm to trade eg bayc
@@ -242,7 +252,7 @@ export class SDK {
      * @param params.closePercent percent to close
      * @returns close pos tx summary
      */
-    public async getClosePoxTxSummary(params: {
+    public async getClosePosTxSummary(params: {
         amm: Amm;
         closePercent?: number;
     }): Promise<ClosePosTxSummaryResponse> {
@@ -383,6 +393,16 @@ export class SDK {
     public async getAmmInfo(amm: Amm): Promise<AmmInfoResponse> {
         const ammInfo = await api.ammInfo(amm);
         return ammInfo;
+    }
+
+    /**
+     * Get margin ratio. margin ratio = active margin / active notional
+     * @param params.amm amm eg bayc
+     * @returns margin ratio
+     */
+    public async getMaintenanceMarginRatio(amm: Amm): Promise<string> {
+        const { maintenanceMarginRatio } = await api.ammInfo(amm);
+        return maintenanceMarginRatio;
     }
 
     /**

@@ -1,4 +1,4 @@
-import { constants, Contract, ethers, Wallet } from "ethers";
+import { constants, Contract, Wallet } from "ethers";
 
 import { ClearingHouse, ERC20 } from "./typechain-types";
 import abis from "./abis";
@@ -9,11 +9,14 @@ import api from "./services/api";
 import {
     Amm,
     AmmInfoResponse,
+    CalcFeeResponse,
+    ClosePosTxSummaryResponse,
     Decimal,
     FundingInfoResponse,
     Instance,
     PositionResponse,
     Side,
+    TransactionSummaryResponse,
 } from "./types";
 
 export class SDK {
@@ -174,9 +177,8 @@ export class SDK {
     }
 
     /**
-     * Get position
-     * @param amm amm eg bayc
-     * @returns position
+     * Get all positions
+     * @returns all positions
      */
     public async getAllPositions(trader?: string): Promise<{ [key in Amm]: PositionResponse }> {
         const positions = await api.positions(trader ?? (await this._getAddress()));
@@ -194,17 +196,133 @@ export class SDK {
     }
 
     /**
+     * calc fee
+     * @param params.amm amm eg bayc
+     * @param params.amount collateral amount
+     * @param params.leverage leverage
+     * @param params.side buy or sell
+     * @param params.open is opening position?
+     * @returns fee in `eth`
+     */
+    public async calcFee(params: {
+        amm: Amm;
+        amount: number;
+        leverage: number;
+        side: Side;
+        open: boolean;
+    }): Promise<CalcFeeResponse> {
+        const { amm, amount, leverage, side, open } = params;
+        const feeData = await api.calcFee(amm, { amount, leverage, side, open });
+        return feeData;
+    }
+
+    /**
+     * get open pos tx summary
+     * @param params.amm amm eg bayc
+     * @param params.amount collateral amount
+     * @param params.leverage leverage
+     * @param params.side buy or sell
+     * @returns open pos tx summary
+     */
+    public async getOpenPosTxSummary(params: {
+        amm: Amm;
+        amount: number;
+        leverage: number;
+        side: Side;
+    }): Promise<TransactionSummaryResponse> {
+        const { amm, amount, leverage, side } = params;
+        const trader = await this._getAddress();
+        const txSummary = await api.transactionSummary(amm, { amount, leverage, side, trader });
+        return txSummary;
+    }
+
+    /**
+     * get open pos tx summary
+     * @param params.amm amm eg bayc
+     * @param params.closePercent percent to close
+     * @returns close pos tx summary
+     */
+    public async getClosePoxTxSummary(params: {
+        amm: Amm;
+        closePercent?: number;
+    }): Promise<ClosePosTxSummaryResponse> {
+        const { amm, closePercent } = params;
+        const trader = await this._getAddress();
+        const txSummary = await api.closePosTransactionSummary(amm, {
+            trader,
+            closePercent: closePercent ?? 100,
+        });
+        return txSummary;
+    }
+
+    /**
+     * get upnl
+     * @param amm amm eg bayc
+     * @returns upnl in `eth`
+     */
+    public async getUpnl(amm: Amm): Promise<string> {
+        const trader = await this._getAddress();
+        const { size, unrealizedPnl } = await api.position(amm, trader);
+        if (big(size).eq(0)) {
+            throw new Error("no position found");
+        }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return unrealizedPnl!;
+    }
+
+    /**
+     * get funding payment
+     * @param amm amm eg bayc
+     * @returns funding payment in `eth`
+     */
+    public async getFundingPayment(amm: Amm): Promise<string> {
+        const trader = await this._getAddress();
+        const { size, fundingPayment } = await api.position(amm, trader);
+        if (big(size).eq(0)) {
+            throw new Error("no position found");
+        }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return fundingPayment!;
+    }
+
+    /**
+     * get liquidation price
+     * @param amm amm eg bayc
+     * @returns liquidation price in `eth`
+     */
+    public async getLiquidationPrice(amm: Amm): Promise<string> {
+        const trader = await this._getAddress();
+        const { size, liquidationPrice } = await api.position(amm, trader);
+        if (big(size).eq(0)) {
+            throw new Error("no position found");
+        }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return liquidationPrice!;
+    }
+
+    /**
      * Get margin ratio. margin ratio = active margin / active notional
      * @param params.amm amm eg bayc
      * @returns margin ratio
      */
-    public async getMarginRatio(amm: Amm, trader?: string): Promise<string> {
-        const { size, marginRatio } = await api.position(amm, trader ?? (await this._getAddress()));
+    public async getMarginRatio(amm: Amm): Promise<string> {
+        const trader = await this._getAddress();
+        const { size, marginRatio } = await api.position(amm, trader);
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return marginRatio!;
+    }
+
+    /**
+     * get max leverage for amm
+     * @param amm amm eg bayc
+     * @returns max leverage
+     */
+    public async getMaxLeverage(amm: Amm): Promise<string> {
+        const ammInfo = await api.ammInfo(amm);
+        return stringify(big(1).div(ammInfo.initMarginRatio));
     }
 
     /**

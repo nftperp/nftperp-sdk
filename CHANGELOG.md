@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/nftperp/nftperp-sdk/compare/v2.0.6...v3.0.0) (2022-11-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* overhaul with apis
+
+### Features
+
+* add mark price twap and interval methods ([05fafba](https://github.com/nftperp/nftperp-sdk/commit/05fafbabf027164febe57dcffd6eaf8402713b11))
+* overhaul with apis ([e4d7644](https://github.com/nftperp/nftperp-sdk/commit/e4d76440015f3e9129f36b37499848cc379c0d7e))
+
 ### [2.0.6](https://github.com/nftperp/nftperp-sdk/compare/v2.0.5...v2.0.6) (2022-09-13)
 
 

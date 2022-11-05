@@ -356,6 +356,26 @@ export class SDK {
     }
 
     /**
+     * Get mark price twap
+     * @param amm amm eg bayc
+     * @returns mark price twap interval
+     */
+    public async getMarkPriceTwap(amm: Amm): Promise<string> {
+        const markPriceTwap = await api.markPriceTwap(amm);
+        return markPriceTwap;
+    }
+
+    /**
+     * Get mark price twap interval
+     * @param amm amm eg bayc
+     * @returns mark price twap interval
+     */
+    public async getMarkPriceTwapinterval(amm: Amm): Promise<string> {
+        const markPriceTwapInterval = await api.markPriceTwapInterval(amm);
+        return markPriceTwapInterval;
+    }
+
+    /**
      * Get amm info
      * @param amm amm eg bayc
      * @returns amm Info

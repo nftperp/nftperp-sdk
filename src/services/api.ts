@@ -17,6 +17,8 @@ import {
     TeamInfoResponse,
     Amm,
     CalcFeeResponse,
+    MarkPriceTwapIntervalResponse,
+    MarkPriceTwapResponse,
 } from "../types";
 
 class NftperpApis {
@@ -243,14 +245,26 @@ class NftperpApis {
         }
     };
 
-    public readonly teamInfo = async (traders: string[]): Promise<TeamInfoResponse> => {
+    public readonly markPriceTwap = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/teamInfo`;
-            const { data } = await axios.post<{ data: TeamInfoResponse }>(url, { traders });
-            return data.data;
+            const url = `${this._baseUrl}/${amm}/markpricetwap`;
+            const { data } = await axios.get<MarkPriceTwapResponse>(url);
+            return data.markPriceTwap;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in team info api: ${e.message}`);
+            throw new Error(`error occured in mark price twap api: ${e.message}`);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly markPriceTwapInterval = async (amm: Amm): Promise<string> => {
+        try {
+            const url = `${this._baseUrl}/${amm}/markpricetwapinterval`;
+            const { data } = await axios.get<MarkPriceTwapIntervalResponse>(url);
+            return data.markPriceTwapInterval;
+            /* eslint-disable */
+        } catch (e: any) {
+            throw new Error(`error occured in mark price twap interval api: ${e.message}`);
             /* eslint-enable */
         }
     };

@@ -5,6 +5,16 @@ export type MarkPriceResponse = {
     lastUpdatedTimestamp: string;
 };
 
+export type MarkPriceTwapResponse = {
+    markPriceTwap: string;
+    lastUpdatedTimestamp: string;
+};
+
+export type MarkPriceTwapIntervalResponse = {
+    markPriceTwapInterval: string;
+    lastUpdatedTimestamp: string;
+};
+
 export type IndexPriceResponse = {
     indexPrice: string;
     lastUpdatedTimestamp: string;

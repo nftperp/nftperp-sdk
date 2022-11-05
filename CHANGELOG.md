@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.1](https://github.com/nftperp/nftperp-sdk/compare/v3.0.0...v3.0.1) (2022-11-05)
+
+
+### Features
+
+* add faucet method ([373b4be](https://github.com/nftperp/nftperp-sdk/commit/373b4beb48329c188a5e944fdd10c7b63b5267dd))
+
 ## [3.0.0](https://github.com/nftperp/nftperp-sdk/compare/v2.0.6...v3.0.0) (2022-11-05)
 
 

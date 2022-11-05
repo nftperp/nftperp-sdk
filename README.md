@@ -95,7 +95,7 @@ const hash = await nftperp.closePosition({
 #### Calculate fee on position
 
 ```ts
-const ammInfo = await nftperp.calcFee({
+const feeInfo = await nftperp.calcFee({
     amm: Amm.BAYC,
     amount: 1,
     leverage: 1,
@@ -107,7 +107,7 @@ const ammInfo = await nftperp.calcFee({
 #### Calculate open position transaction summary
 
 ```ts
-const ammInfo = await nftperp.getOpenPosTxSummary({
+const txSummary = await nftperp.getOpenPosTxSummary({
     amm: Amm.BAYC,
     amount: 1,
     leverage: 1,
@@ -118,7 +118,7 @@ const ammInfo = await nftperp.getOpenPosTxSummary({
 #### Calculate close position transaction summary
 
 ```ts
-const ammInfo = await nftperp.getClosePosTxSummary({
+const txSummary = await nftperp.getClosePosTxSummary({
     amm: Amm.BAYC,
     closePercent: 100,
 });
@@ -127,17 +127,17 @@ const ammInfo = await nftperp.getClosePosTxSummary({
 #### Get mark price
 
 ```ts
-const ammInfo = await nftperp.getMarkPrice(Amm.BAYC);
+const markPrice = await nftperp.getMarkPrice(Amm.BAYC);
 ```
 
 #### Get index price
 
 ```ts
-const ammInfo = await nftperp.getIndexPrice(Amm.BAYC);
+const indexPrice = await nftperp.getIndexPrice(Amm.BAYC);
 ```
 
 #### Get funding info
 
 ```ts
-const ammInfo = await nftperp.getFundingInfo(Amm.BAYC);
+const fundingInfo = await nftperp.getFundingInfo(Amm.BAYC);
 ```

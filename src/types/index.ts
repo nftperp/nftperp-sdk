@@ -21,9 +21,11 @@ export enum Side {
 
 export enum Instance {
     TRADING_COMP = "TRADING_COMP",
+    BETA = "BETA",
 }
 
 export type InstanceConfig = {
+    apiBaseUrl: string;
     chainId: number;
     ch: string;
     chv: string;
@@ -36,6 +38,6 @@ export type InstanceConfig = {
 
 export type Config = {
     [key in Instance]: InstanceConfig;
-} & { API_BASE_URL: string };
+};
 
 export type Decimal = { d: string | BigNumber };

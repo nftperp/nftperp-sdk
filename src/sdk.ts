@@ -5,7 +5,6 @@ import abis from "./abis";
 import Big from "big.js";
 import { getAmmAddress, getInstanceConfig } from "./utils/configDao";
 import { big, fromWei, stringify, toDecimalWei } from "./utils/format";
-import api from "./services/api";
 import {
     Amm,
     AmmInfoResponse,
@@ -18,6 +17,7 @@ import {
     Side,
     TransactionSummaryResponse,
 } from "./types";
+import NftperpApis from "./services/api";
 
 export class SDK {
     private readonly _wallet: Wallet;
@@ -25,6 +25,8 @@ export class SDK {
 
     private readonly _ch: ClearingHouse;
     private readonly _weth: ERC20;
+
+    private readonly _api: NftperpApis;
     /**
      * @param params params for initing sdk
      * @param params.wallet ethers wallet class for signing txs
@@ -40,6 +42,8 @@ export class SDK {
 
         this._wallet = wallet;
         this._instance = instance;
+
+        this._api = new NftperpApis(instance);
     }
 
     /**
@@ -70,7 +74,12 @@ export class SDK {
     }): Promise<string> {
         const { amm, side, amount, leverage, slippagePercent } = params;
         const trader = await this._getAddress();
-        const txSummary = await api.transactionSummary(amm, { amount, leverage, side, trader });
+        const txSummary = await this._api.transactionSummary(amm, {
+            amount,
+            leverage,
+            side,
+            trader,
+        });
         await this._checkBalance(big(txSummary.totalCost));
         await this._checkAllowance(big(txSummary.totalCost));
         const baseAssetAmountLimit = this._getSlippageBaseAssetAmount(
@@ -100,7 +109,10 @@ export class SDK {
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
-        const txSummary = await api.closePosTransactionSummary(amm, { trader, closePercent: 100 });
+        const txSummary = await this._api.closePosTransactionSummary(amm, {
+            trader,
+            closePercent: 100,
+        });
         const quoteAssetAmountLimit = this._getSlippageQuoteAssetAmount(
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             side!,
@@ -131,7 +143,7 @@ export class SDK {
         if (big(size).eq(0)) {
             throw new Error("no such position");
         }
-        const txSummary = await api.closePosTransactionSummary(amm, { trader, closePercent });
+        const txSummary = await this._api.closePosTransactionSummary(amm, { trader, closePercent });
         const quoteAssetAmountLimit = this._getSlippageQuoteAssetAmount(
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             side!,
@@ -178,7 +190,7 @@ export class SDK {
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
-        const freeCollateral = await api.freeCollateral(amm, trader);
+        const freeCollateral = await this._api.freeCollateral(amm, trader);
         if (big(amount).gt(freeCollateral)) {
             throw new Error("remove amount beyond free collateral");
         }
@@ -191,7 +203,7 @@ export class SDK {
      * @returns all positions
      */
     public async getAllPositions(trader?: string): Promise<{ [key in Amm]: PositionResponse }> {
-        const positions = await api.positions(trader ?? (await this._getAddress()));
+        const positions = await this._api.positions(trader ?? (await this._getAddress()));
         return positions;
     }
 
@@ -201,7 +213,7 @@ export class SDK {
      * @returns position
      */
     public async getPosition(amm: Amm, trader?: string): Promise<PositionResponse> {
-        const position = await api.position(amm, trader ?? (await this._getAddress()));
+        const position = await this._api.position(amm, trader ?? (await this._getAddress()));
         return position;
     }
 
@@ -222,7 +234,7 @@ export class SDK {
         open: boolean;
     }): Promise<CalcFeeResponse> {
         const { amm, amount, leverage, side, open } = params;
-        const feeData = await api.calcFee(amm, { amount, leverage, side, open });
+        const feeData = await this._api.calcFee(amm, { amount, leverage, side, open });
         return feeData;
     }
 
@@ -242,7 +254,12 @@ export class SDK {
     }): Promise<TransactionSummaryResponse> {
         const { amm, amount, leverage, side } = params;
         const trader = await this._getAddress();
-        const txSummary = await api.transactionSummary(amm, { amount, leverage, side, trader });
+        const txSummary = await this._api.transactionSummary(amm, {
+            amount,
+            leverage,
+            side,
+            trader,
+        });
         return txSummary;
     }
 
@@ -258,7 +275,7 @@ export class SDK {
     }): Promise<ClosePosTxSummaryResponse> {
         const { amm, closePercent } = params;
         const trader = await this._getAddress();
-        const txSummary = await api.closePosTransactionSummary(amm, {
+        const txSummary = await this._api.closePosTransactionSummary(amm, {
             trader,
             closePercent: closePercent ?? 100,
         });
@@ -272,7 +289,7 @@ export class SDK {
      */
     public async getUpnl(amm: Amm): Promise<string> {
         const trader = await this._getAddress();
-        const { size, unrealizedPnl } = await api.position(amm, trader);
+        const { size, unrealizedPnl } = await this._api.position(amm, trader);
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
@@ -287,7 +304,7 @@ export class SDK {
      */
     public async getFundingPayment(amm: Amm): Promise<string> {
         const trader = await this._getAddress();
-        const { size, fundingPayment } = await api.position(amm, trader);
+        const { size, fundingPayment } = await this._api.position(amm, trader);
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
@@ -302,7 +319,7 @@ export class SDK {
      */
     public async getLiquidationPrice(amm: Amm): Promise<string> {
         const trader = await this._getAddress();
-        const { size, liquidationPrice } = await api.position(amm, trader);
+        const { size, liquidationPrice } = await this._api.position(amm, trader);
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
@@ -317,7 +334,7 @@ export class SDK {
      */
     public async getMarginRatio(amm: Amm): Promise<string> {
         const trader = await this._getAddress();
-        const { size, marginRatio } = await api.position(amm, trader);
+        const { size, marginRatio } = await this._api.position(amm, trader);
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
@@ -331,7 +348,7 @@ export class SDK {
      * @returns max leverage
      */
     public async getMaxLeverage(amm: Amm): Promise<string> {
-        const ammInfo = await api.ammInfo(amm);
+        const ammInfo = await this._api.ammInfo(amm);
         return stringify(big(1).div(ammInfo.initMarginRatio));
     }
 
@@ -341,7 +358,7 @@ export class SDK {
      * @returns mark price
      */
     public async getMarkPrice(amm: Amm): Promise<string> {
-        const markPrice = await api.markPrice(amm);
+        const markPrice = await this._api.markPrice(amm);
         return markPrice;
     }
 
@@ -351,7 +368,7 @@ export class SDK {
      * @returns index price
      */
     public async getIndexPrice(amm: Amm): Promise<string> {
-        const indexPrice = await api.indexPrice(amm);
+        const indexPrice = await this._api.indexPrice(amm);
         return indexPrice;
     }
 
@@ -361,7 +378,7 @@ export class SDK {
      * @returns funding info
      */
     public async getFundingInfo(amm: Amm): Promise<FundingInfoResponse> {
-        const fundingInfo = await api.fundingInfo(amm);
+        const fundingInfo = await this._api.fundingInfo(amm);
         return fundingInfo;
     }
 
@@ -371,7 +388,7 @@ export class SDK {
      * @returns mark price twap interval
      */
     public async getMarkPriceTwap(amm: Amm): Promise<string> {
-        const markPriceTwap = await api.markPriceTwap(amm);
+        const markPriceTwap = await this._api.markPriceTwap(amm);
         return markPriceTwap;
     }
 
@@ -381,7 +398,7 @@ export class SDK {
      * @returns mark price twap interval
      */
     public async getMarkPriceTwapinterval(amm: Amm): Promise<string> {
-        const markPriceTwapInterval = await api.markPriceTwapInterval(amm);
+        const markPriceTwapInterval = await this._api.markPriceTwapInterval(amm);
         return markPriceTwapInterval;
     }
 
@@ -391,7 +408,7 @@ export class SDK {
      * @returns amm Info
      */
     public async getAmmInfo(amm: Amm): Promise<AmmInfoResponse> {
-        const ammInfo = await api.ammInfo(amm);
+        const ammInfo = await this._api.ammInfo(amm);
         return ammInfo;
     }
 
@@ -401,7 +418,7 @@ export class SDK {
      * @returns margin ratio
      */
     public async getMaintenanceMarginRatio(amm: Amm): Promise<string> {
-        const { maintenanceMarginRatio } = await api.ammInfo(amm);
+        const { maintenanceMarginRatio } = await this._api.ammInfo(amm);
         return maintenanceMarginRatio;
     }
 

@@ -19,10 +19,15 @@ import {
     CalcFeeResponse,
     MarkPriceTwapIntervalResponse,
     MarkPriceTwapResponse,
+    Instance,
 } from "../types";
 
 class NftperpApis {
-    private readonly _baseUrl = config.API_BASE_URL.replace(/$\//, ""); // trim trailing slash
+    private readonly _baseUrl;
+
+    constructor(instance: Instance) {
+        this._baseUrl = config[instance].apiBaseUrl.replace(/$\//, ""); // trim trailing slash
+    }
 
     public readonly markPrice = async (amm: Amm): Promise<string> => {
         try {
@@ -270,5 +275,4 @@ class NftperpApis {
     };
 }
 
-const api = new NftperpApis();
-export default api;
+export default NftperpApis;

@@ -1,6 +1,6 @@
 {
     "name": "@nftperp/sdk",
-    "version": "3.0.1",
+    "version": "3.1.0",
     "description": "SDK for nftperp protocol",
     "main": "sdk.js",
     "types": "sdk.d.ts",

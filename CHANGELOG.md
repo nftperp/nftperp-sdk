@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com/nftperp/nftperp-sdk/compare/v3.0.1...v3.1.0) (2022-11-14)
+
+
+### Features
+
+* beta instance ([d32d3be](https://github.com/nftperp/nftperp-sdk/commit/d32d3be77855f23a506d276a0fede01cdb855483))
+
 ### [3.0.1](https://github.com/nftperp/nftperp-sdk/compare/v3.0.0...v3.0.1) (2022-11-05)
 
 

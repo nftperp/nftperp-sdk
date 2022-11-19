@@ -21,7 +21,6 @@ export enum Side {
 
 export enum Instance {
     TRADING_COMP = "TRADING_COMP",
-    BETA = "BETA",
 }
 
 export type InstanceConfig = {

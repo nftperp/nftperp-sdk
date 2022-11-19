@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.1](https://github.com/nftperp/nftperp-sdk/compare/v3.1.0...v3.1.1) (2022-11-19)
+
+
+### Bug Fixes
+
+* api url and bayc address. rm beta instance ([026fcfa](https://github.com/nftperp/nftperp-sdk/commit/026fcfa9bcf408c2b4ba65a52c30ef20a1a1ccb6))
+
 ## [3.1.0](https://github.com/nftperp/nftperp-sdk/compare/v3.0.1...v3.1.0) (2022-11-14)
 
 

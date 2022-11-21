@@ -20,4 +20,15 @@ export const config: Config = {
             GOBBLERS: "0xE56472DDCC9100d933a3D9e1b59c1C63F9f83DD2",
         },
     },
+    BETA: {
+        apiBaseUrl: "https://api2.nftperp.xyz",
+        chainId: 42161,
+        ch: "0x6fc05B7DFe545cd488E9D47d56CFaCA88F69A2e1",
+        chv: "0x616260F052A324F6134889cB291C787f99b59734",
+        iF: "0x035E4480437002A30b61Df6788DFb6199c2C5210",
+        weth: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+        amms: {
+            BAYC: "0x604Ed62F5991d6a2C47b13B9E5d34cC1C5048e99",
+        },
+    },
 };

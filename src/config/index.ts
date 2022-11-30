@@ -29,6 +29,7 @@ export const config: Config = {
         weth: "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
         amms: {
             BAYC: "0x604Ed62F5991d6a2C47b13B9E5d34cC1C5048e99",
+            PUNKS: "0xB504aC5a974c0856732E6DB14589A0A7CC2199e8",
         },
     },
 };

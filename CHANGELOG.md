@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.3.0](https://github.com/nftperp/nftperp-sdk/compare/v3.2.0...v3.3.0) (2022-11-30)
+
+
+### Features
+
+* add PUNKS amm to beta instance ([42c97e5](https://github.com/nftperp/nftperp-sdk/commit/42c97e59a0f025de5bdc86407d27f51092283baf))
+
 ## [3.2.0](https://github.com/nftperp/nftperp-sdk/compare/v3.1.1...v3.2.0) (2022-11-21)
 
 

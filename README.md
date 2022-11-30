@@ -50,12 +50,6 @@ const wallet = new ethers.Wallet("<your-private-key>", provider);
 const nftperp = new SDK({ wallet, instance: Instance.TRADING_COMP });
 ```
 
-#### Obtaining mock WETH from faucet
-
-```ts
-await nftperp.faucet(); // grants 5 mock weth
-```
-
 #### Open a position
 
 ```ts
@@ -74,7 +68,7 @@ _note_: _to get a list of supported amms do:_
 ```ts
 console.log(nftperp.getSupportedAmms(Instance.BETA));
 /**
-[ 'BAYC', 'MILADY', 'AZUKI', '...' ]
+[ 'BAYC', 'PUNKS', '...' ]
 */
 ```
 
@@ -92,7 +86,7 @@ const hash = await nftperp.closePosition({
 });
 ```
 
-#### Calculate fee on position
+#### Estimate fee on position
 
 ```ts
 const feeInfo = await nftperp.calcFee({

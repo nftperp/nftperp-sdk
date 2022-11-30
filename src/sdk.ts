@@ -47,16 +47,6 @@ export class SDK {
     }
 
     /**
-     * use trading comp faucet
-     * grants 5 `mock weth`
-     * @returns tx hash
-     */
-    public async faucet(): Promise<string> {
-        const tx = await this._weth.faucet();
-        return tx.hash;
-    }
-
-    /**
      * Open a new position
      * @param params params for opening position
      * @param params.amm the amm to trade eg bayc

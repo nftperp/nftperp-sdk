@@ -30,6 +30,9 @@ export const config: Config = {
         amms: {
             BAYC: "0x604Ed62F5991d6a2C47b13B9E5d34cC1C5048e99",
             PUNKS: "0xB504aC5a974c0856732E6DB14589A0A7CC2199e8",
+            AZUKI: "0xaf588bca9175cC4d6e981Ade462f0Af40331cb2e",
+            MILADY: "0x28d45Df0D075f229aDcbAfF59Bf90d39e80D875E",
+            MAYC: "0x6BcCA37F6DEAcB3cfCA095f08F6d72C65D01992B",
         },
     },
 };

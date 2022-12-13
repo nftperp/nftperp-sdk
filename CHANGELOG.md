@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.4.0](https://github.com/nftperp/nftperp-sdk/compare/v3.3.0...v3.4.0) (2022-12-13)
+
+
+### Features
+
+* **amm:** add amms azuki, milady and mayc to beta instance ([e674a7a](https://github.com/nftperp/nftperp-sdk/commit/e674a7acf9383dcc83edd16d09c67c66c978b177))
+
 ## [3.3.0](https://github.com/nftperp/nftperp-sdk/compare/v3.2.0...v3.3.0) (2022-11-30)
 
 

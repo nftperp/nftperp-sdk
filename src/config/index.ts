@@ -21,7 +21,7 @@ export const config: Config = {
         },
     },
     BETA: {
-        apiBaseUrl: "https://api2.nftperp.xyz",
+        apiBaseUrl: "https://api3.nftperp.xyz",
         chainId: 42161,
         ch: "0x6fc05B7DFe545cd488E9D47d56CFaCA88F69A2e1",
         chv: "0x616260F052A324F6134889cB291C787f99b59734",

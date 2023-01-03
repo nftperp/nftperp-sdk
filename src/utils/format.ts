@@ -11,7 +11,7 @@ export const fromWei = (value: string | number | BigNumber | Big, decimals = 18)
 };
 
 export const toWei = (value: string | number | BigNumber | Big, decimals = 18): Big => {
-    return big(value).mul(Math.pow(10, decimals));
+    return big(value).mul(Math.pow(10, decimals)).round(0, 0); // wei cannot be in decimal
 };
 
 export const decimal = (value: string | number | BigNumber | Big): Decimal => {

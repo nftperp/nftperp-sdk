@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.6.0](https://github.com/nftperp/nftperp-sdk/compare/v3.5.1...v3.6.0) (2023-01-03)
+
+
+### Bug Fixes
+
+* wei in decimals, update api endpoint ([3839382](https://github.com/nftperp/nftperp-sdk/commit/38393820c11b18ce187b3175418f8673bbbe36b8))
+
 ### [3.5.1](https://github.com/nftperp/nftperp-sdk/compare/v3.5.0...v3.5.1) (2023-01-03)
 
 ## [3.5.0](https://github.com/nftperp/nftperp-sdk/compare/v3.4.0...v3.5.0) (2023-01-03)

@@ -97,13 +97,14 @@ export class SDK {
      */
     public async closePosition(params: {
         amm: Amm;
-        closePercent: number;
+        closePercent?: number;
         slippagePercent?: number;
     }): Promise<string> {
-        const { amm, closePercent, slippagePercent } = params;
+        const { amm, closePercent: _closePercent, slippagePercent } = params;
 
         // validate params
         this._checkAmm(amm);
+        const closePercent = _closePercent ?? 100;
         const { size, trader, side } = await this.getPosition(amm);
         if (big(size).eq(0)) {
             throw new Error("no position found");

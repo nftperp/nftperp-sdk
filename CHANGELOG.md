@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.5.0](https://github.com/nftperp/nftperp-sdk/compare/v3.4.0...v3.5.0) (2023-01-03)
+
+
+### Bug Fixes
+
+* zero slippage, handle api errors gracefully, remove partial close method ([d493b94](https://github.com/nftperp/nftperp-sdk/commit/d493b94ad6d75e187c45d259cbf84d2dfa6877e9))
+
 ## [3.4.0](https://github.com/nftperp/nftperp-sdk/compare/v3.3.0...v3.4.0) (2022-12-13)
 
 

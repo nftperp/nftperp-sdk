@@ -14,7 +14,6 @@ import {
     MarginChangeSummaryResponse,
     TotalPositionSizeResponse,
     BalancesResponse,
-    TeamInfoResponse,
     Amm,
     CalcFeeResponse,
     MarkPriceTwapIntervalResponse,
@@ -36,7 +35,7 @@ class NftperpApis {
             return data.data.markPrice;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in mark price api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -48,7 +47,7 @@ class NftperpApis {
             return data.data.indexPrice;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in index price api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -60,7 +59,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in position api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -74,7 +73,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in position api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -86,7 +85,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in reserves api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -98,7 +97,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in amm info api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -118,7 +117,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in transaction summmary api: ${e.message}`);
+            this._checkError(e);
             /* eslint-ensable */
         }
     };
@@ -138,7 +137,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in calc fee api: ${e.message}`);
+            this._checkError(e);
             /* eslint-ensable */
         }
     };
@@ -153,7 +152,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in close pos transaction summmary api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -165,7 +164,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in stats 24h api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -177,7 +176,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in funding info api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -189,7 +188,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in free collateral api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -209,7 +208,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in margin change summary api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -221,7 +220,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in total position size api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -233,7 +232,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in balances api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -245,7 +244,7 @@ class NftperpApis {
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in balances api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -257,7 +256,7 @@ class NftperpApis {
             return data.markPriceTwap;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in mark price twap api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
@@ -269,10 +268,24 @@ class NftperpApis {
             return data.markPriceTwapInterval;
             /* eslint-disable */
         } catch (e: any) {
-            throw new Error(`error occured in mark price twap interval api: ${e.message}`);
+            this._checkError(e);
             /* eslint-enable */
         }
     };
+
+    private _checkError(e: any): never {
+        /* eslint-disable */
+        if (e.response) {
+            const res = e.response;
+            if (res.status === 429) {
+                throw new Error(`RATE_LIMIT: Too many requests, please try in a while`);
+            } else if (res.data && res.data.message) {
+                throw new Error(res.data.message);
+            }
+        }
+        throw new Error(e.message);
+        /* eslint-enable */
+    }
 }
 
 export default NftperpApis;

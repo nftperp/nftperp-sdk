@@ -51,7 +51,7 @@ export class SDK {
      * @param params params for opening position
      * @param params.amm the amm to trade eg bayc
      * @param params.side buy or sell
-     * @param params.amount collateral amount
+     * @param params.amount margin
      * @param params.leverage leverage
      * @returns tx hash
      */
@@ -63,6 +63,8 @@ export class SDK {
         slippagePercent?: number;
     }): Promise<string> {
         const { amm, side, amount, leverage, slippagePercent } = params;
+
+        this._checkAmm(amm);
         const trader = await this._getAddress();
         const txSummary = await this._api.transactionSummary(amm, {
             amount,
@@ -93,15 +95,22 @@ export class SDK {
      * @param params.amm amm eg bayc
      * @returns tx hash
      */
-    public async closePosition(params: { amm: Amm; slippagePercent?: number }): Promise<string> {
-        const { amm, slippagePercent } = params;
+    public async closePosition(params: {
+        amm: Amm;
+        closePercent: number;
+        slippagePercent?: number;
+    }): Promise<string> {
+        const { amm, closePercent, slippagePercent } = params;
+
+        // validate params
+        this._checkAmm(amm);
         const { size, trader, side } = await this.getPosition(amm);
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
         const txSummary = await this._api.closePosTransactionSummary(amm, {
             trader,
-            closePercent: 100,
+            closePercent,
         });
         const quoteAssetAmountLimit = this._getSlippageQuoteAssetAmount(
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -110,40 +119,15 @@ export class SDK {
             slippagePercent
         );
 
+        if (closePercent < 100) {
+            return await this._partialClose(
+                this._getAmmAddress(amm),
+                toDecimalWei(closePercent),
+                toDecimalWei(quoteAssetAmountLimit)
+            );
+        }
         return await this._closePosition(
             this._getAmmAddress(amm),
-            toDecimalWei(quoteAssetAmountLimit)
-        );
-    }
-
-    /**
-     * Partially close position
-     * @param params params for partially closing position
-     * @param params.amm amm eg bayc
-     * @param params.partialClosePercent percentage of position to close
-     * @returns tx hash
-     */
-    public async partialClose(params: {
-        amm: Amm;
-        closePercent: number;
-        slippagePercent?: number;
-    }) {
-        const { amm, closePercent, slippagePercent } = params;
-        const { size, trader, side } = await this.getPosition(amm);
-        if (big(size).eq(0)) {
-            throw new Error("no such position");
-        }
-        const txSummary = await this._api.closePosTransactionSummary(amm, { trader, closePercent });
-        const quoteAssetAmountLimit = this._getSlippageQuoteAssetAmount(
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            side!,
-            big(txSummary.outputNotional),
-            slippagePercent
-        );
-
-        return await this._partialClose(
-            this._getAmmAddress(amm),
-            toDecimalWei(closePercent / 100),
             toDecimalWei(quoteAssetAmountLimit)
         );
     }
@@ -307,9 +291,11 @@ export class SDK {
      * @param amm amm eg bayc
      * @returns liquidation price in `eth`
      */
-    public async getLiquidationPrice(amm: Amm): Promise<string> {
-        const trader = await this._getAddress();
-        const { size, liquidationPrice } = await this._api.position(amm, trader);
+    public async getLiquidationPrice(amm: Amm, trader?: string): Promise<string> {
+        const { size, liquidationPrice } = await this._api.position(
+            amm,
+            trader ?? (await this._getAddress())
+        );
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
@@ -322,9 +308,11 @@ export class SDK {
      * @param params.amm amm eg bayc
      * @returns margin ratio
      */
-    public async getMarginRatio(amm: Amm): Promise<string> {
-        const trader = await this._getAddress();
-        const { size, marginRatio } = await this._api.position(amm, trader);
+    public async getMarginRatio(amm: Amm, trader?: string): Promise<string> {
+        const { size, marginRatio } = await this._api.position(
+            amm,
+            trader ?? (await this._getAddress())
+        );
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
@@ -430,12 +418,13 @@ export class SDK {
      * @requires baseAssetOut in `eth`
      * @returns base asset amount limit in `eth`
      */
-    private _getSlippageBaseAssetAmount(side: Side, baseAssetOut: Big, slippagePercent = 1): Big {
+    private _getSlippageBaseAssetAmount(side: Side, baseAssetOut: Big, slippagePercent = 0): Big {
+        if (!slippagePercent) return big(0);
         const slippageAmount = baseAssetOut.mul(slippagePercent).div(100);
         if (side === Side.BUY) {
-            return baseAssetOut.sub(slippageAmount).round(0, 0);
+            return baseAssetOut.sub(slippageAmount);
         }
-        return baseAssetOut.add(slippageAmount).round(0, 0);
+        return baseAssetOut.add(slippageAmount);
     }
 
     /**
@@ -447,13 +436,14 @@ export class SDK {
     private _getSlippageQuoteAssetAmount(
         side: Side,
         outputNotional: Big,
-        slippagePercent = 1
+        slippagePercent = 0
     ): Big {
+        if (!slippagePercent) return big(0);
         const slippageAmount = outputNotional.mul(slippagePercent).div(100);
         if (side === Side.BUY) {
-            return outputNotional.sub(slippageAmount).round(0, 0);
+            return outputNotional.sub(slippageAmount);
         }
-        return outputNotional.add(slippageAmount).round(0, 0);
+        return outputNotional.add(slippageAmount);
     }
 
     /**
@@ -585,5 +575,15 @@ export class SDK {
         const addy = this._wallet.address ?? (await this._wallet.getAddress());
         if (!addy) throw new Error("signer has no address attached");
         return addy;
+    }
+
+    /**
+     * check whether amm supported for instance
+     */
+    private _checkAmm(amm: Amm) {
+        const amms = this.getSupportedAmms(this._instance);
+        if (!amms.includes(amm)) {
+            throw new Error(`amm: ${amm} not supported on instance: ${this._instance}`);
+        }
     }
 }

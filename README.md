@@ -30,7 +30,7 @@ Also requires `ethers` library
 **NOTE:** If `npm i ethers` is used, it will default to installing `ethers v6`, which will create errors when initialising the SDK
 
 ```sh
-npm i ethers@5.7.2
+npm i ethers@5
 ```
 
 

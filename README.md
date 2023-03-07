@@ -26,11 +26,14 @@ For any queries, hop in the community discord and ask away [invite link](https:/
 npm i @nftperp/sdk
 ```
 
-Also requires `ethers` library
+Also requires `ethers` library  
+**NOTE:** If `npm i ethers` is used, it will default to installing `ethers v6`, which will create errors when initialising the SDK
 
 ```sh
-npm i ethers
+npm i ethers@5
 ```
+
+
 
 ### Usage
 
@@ -48,6 +51,21 @@ recommended using one from infura/alchemy
 const provider = new ethers.providers.JsonRpcProvider("<your-rpc-url>");
 const wallet = new ethers.Wallet("<your-private-key>", provider);
 const nftperp = new SDK({ wallet, instance: Instance.TRADING_COMP });
+```  
+
+If an error of the following occurs: `SyntaxError: Cannot use import statement outside a module`, add in the following to your `package.json` file  
+
+```json
+"type": "module"
+```
+
+If an error of the following occurs: `Directory import '..\@nftperp\sdk\types' is not supported resolving ES modules`, do the following:
+
+```ts
+// REPLACE
+import { Instance } from "@nftperp/sdk/types";
+// WITH
+import { Instance } from "@nftperp/sdk/types/index.js";
 ```
 
 #### Open a position

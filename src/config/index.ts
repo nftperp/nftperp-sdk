@@ -33,6 +33,7 @@ export const config: Config = {
             AZUKI: "0xaf588bca9175cC4d6e981Ade462f0Af40331cb2e",
             MILADY: "0x28d45Df0D075f229aDcbAfF59Bf90d39e80D875E",
             MAYC: "0x6BcCA37F6DEAcB3cfCA095f08F6d72C65D01992B",
+            PPG: "0xaD7d8b1BEAF28225bBDD7F76D2604decFD0B6013",
         },
     },
 };

@@ -12,6 +12,7 @@ export enum Amm {
     MOONBIRDS = "MOONBIRDS",
     BGAN = "BGAN",
     GOBBLERS = "GOBBLERS",
+    PPG = "PPG",
 }
 
 export enum Side {

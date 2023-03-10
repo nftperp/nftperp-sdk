@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.2](https://github.com/nftperp/nftperp-sdk/compare/v3.7.1...v3.7.2) (2023-03-10)
+
+
+### Features
+
+* **amm:** add pudgy penguins amm PPG ([d154da6](https://github.com/nftperp/nftperp-sdk/commit/d154da61547d4e325784c59f105da48b322c20e9))
+
 ### [3.7.1](https://github.com/nftperp/nftperp-sdk/compare/v3.7.0...v3.7.1) (2023-02-24)
 
 ## [3.7.0](https://github.com/nftperp/nftperp-sdk/compare/v3.6.0...v3.7.0) (2023-01-15)

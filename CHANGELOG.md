@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.8.0](https://github.com/nftperp/nftperp-sdk/compare/v3.7.2...v3.8.0) (2023-03-22)
+
+
+### Bug Fixes
+
+* partial close ([bf80108](https://github.com/nftperp/nftperp-sdk/commit/bf80108ac2070440709b66354661415424a6b8d4))
+
 ### [3.7.2](https://github.com/nftperp/nftperp-sdk/compare/v3.7.1...v3.7.2) (2023-03-10)
 
 

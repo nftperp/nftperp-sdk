@@ -123,7 +123,7 @@ export class SDK {
         if (closePercent < 100) {
             return await this._partialClose(
                 this._getAmmAddress(amm),
-                toDecimalWei(closePercent),
+                toDecimalWei(closePercent / 100),
                 toDecimalWei(quoteAssetAmountLimit)
             );
         }

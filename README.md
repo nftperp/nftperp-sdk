@@ -104,6 +104,15 @@ const hash = await nftperp.closePosition({
 });
 ```
 
+#### Partially close position
+
+```ts
+const hash = await nftperp.closePosition({
+    amm: Amm.BAYC,
+    closePercent: 0.5, // 50%
+});
+```
+
 #### Estimate fee on position
 
 ```ts

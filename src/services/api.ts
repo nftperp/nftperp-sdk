@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosHeaders } from "axios";
 import { config } from "../config";
 import {
     AmmInfoResponse,
@@ -19,7 +19,9 @@ import {
     MarkPriceTwapIntervalResponse,
     MarkPriceTwapResponse,
     Instance,
+    RateLimitHeaders,
 } from "../types";
+import RateLimitError from "../types/rateLimitError";
 
 class NftperpApis {
     private readonly _baseUrl;
@@ -278,13 +280,32 @@ class NftperpApis {
         if (e.response) {
             const res = e.response;
             if (res.status === 429) {
-                throw new Error(`RATE_LIMIT: Too many requests, please try in a while`);
+                let { ratelimit, ratelimitRemaining, ratelimitReset, retryAfter } =
+                    this._extractRateLimitHeaders(res.headers);
+                let error = new RateLimitError(
+                    `RATE_LIMIT: Too many requests, please try in a while`,
+                    ratelimit,
+                    ratelimitRemaining,
+                    ratelimitReset,
+                    retryAfter
+                );
+                throw error;
             } else if (res.data && res.data.message) {
                 throw new Error(res.data.message);
             }
         }
         throw new Error(e.message);
         /* eslint-enable */
+    }
+
+    private _extractRateLimitHeaders(headers: AxiosHeaders): RateLimitHeaders {
+        const rateLimitHeaders: RateLimitHeaders = {
+            ratelimit: parseInt(headers.get("ratelimit-limit") as string),
+            ratelimitRemaining: parseInt(headers.get("ratelimit-remaining") as string),
+            ratelimitReset: parseInt(headers.get("ratelimit-reset") as string),
+            retryAfter: parseInt(headers.get("retry-after") as string),
+        };
+        return rateLimitHeaders;
     }
 }
 

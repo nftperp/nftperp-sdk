@@ -133,3 +133,10 @@ export type BalancesResponse = {
 export type TeamInfoResponse = {
     [key: string]: "almond" | "peanut";
 };
+
+export type RateLimitHeaders = {
+    ratelimit: number;
+    ratelimitRemaining: number;
+    ratelimitReset: number;
+    retryAfter: number;
+};

@@ -8,7 +8,8 @@
         "build": "tsc",
         "start": "node dist/sdk.js",
         "prepare": "husky install",
-        "typechain": "typechain --target ethers-v5 --out-dir src/typechain-types 'src/abis/**/*.json'"
+        "typechain": "typechain --target ethers-v5 --out-dir src/typechain-types 'src/abis/**/*.json'",
+        "postinstall": "npm run typechain"
     },
     "homepage": "https://github.com/nftperp/nftperp-sdk/#readme",
     "repository": {

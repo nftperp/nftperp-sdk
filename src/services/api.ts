@@ -21,7 +21,21 @@ import {
     Instance,
     RateLimitHeaders,
 } from "../types";
-import RateLimitError from "../types/rateLimitError";
+
+class RateLimitError extends Error {
+    public readonly ratelimit: number;
+    public readonly ratelimitRemaining: number;
+    public readonly ratelimitReset: number;
+    public readonly retryAfter: number;
+
+    constructor(message: string, rlHeaders: RateLimitHeaders) {
+        super(message);
+        this.ratelimit = rlHeaders.ratelimit;
+        this.ratelimitRemaining = rlHeaders.ratelimitRemaining;
+        this.ratelimitReset = rlHeaders.ratelimitReset;
+        this.retryAfter = rlHeaders.retryAfter;
+    }
+}
 
 class NftperpApis {
     private readonly _baseUrl;
@@ -280,14 +294,10 @@ class NftperpApis {
         if (e.response) {
             const res = e.response;
             if (res.status === 429) {
-                let { ratelimit, ratelimitRemaining, ratelimitReset, retryAfter } =
-                    this._extractRateLimitHeaders(res.headers);
-                let error = new RateLimitError(
+                const rlHeaders = this._extractRateLimitHeaders(res.headers);
+                const error = new RateLimitError(
                     `RATE_LIMIT: Too many requests, please try in a while`,
-                    ratelimit,
-                    ratelimitRemaining,
-                    ratelimitReset,
-                    retryAfter
+                    rlHeaders
                 );
                 throw error;
             } else if (res.data && res.data.message) {

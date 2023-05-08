@@ -1,5 +1,5 @@
 import { Overrides } from "ethers";
-import { Amm, Side } from "./index";
+import { Amm, Side, Sort } from "./index";
 
 export type MarkPriceResponse = {
     markPrice: string;
@@ -134,6 +134,80 @@ export type BalancesResponse = {
     eth: string;
     weth: string;
 };
+
+export interface TxInfo {
+    transactionHash: string;
+    blockNumber: number;
+    transactionIndex: number;
+    logIndex: number;
+    timestamp: number;
+}
+
+export interface ProcessedPositionChangedEvent extends TxInfo {
+    trader: string;
+    amm: string;
+    ammName: string;
+    margin: string;
+    exchangedPositionNotional: string;
+    exchangedPositionSize: string;
+    fee: string;
+    positionSizeAfter: string;
+    realizedPnl: string;
+    unrealizedPnlAfter: string;
+    badDebt: string;
+    liquidationPenalty: string;
+    markPrice: string;
+    fundingPayment: string;
+}
+
+export interface ProcessedFundingPaymentEvent extends TxInfo {
+    amm: string;
+    ammName: string;
+    markPrice: string;
+    indexPrice: string;
+    premiumFractionLong: string;
+    premiumFractionShort: string;
+    fundingRateLong: string;
+    fundingRateShort: string;
+    insuranceFundPnl: string;
+}
+
+export interface ProcessedMarginChangedEvent extends TxInfo {
+    trader: string;
+    amm: string;
+    ammName: string;
+    amount: string;
+    fundingPayment: string;
+}
+
+export type TradeApiParams = {
+    amm?: Amm;
+    trader?: string;
+    hash?: string;
+    from?: number;
+    to?: number;
+    sort?: Sort;
+    page?: number;
+    pageSize?: number;
+};
+
+export type FundingApiParams = {
+    amm?: Amm;
+    hash?: string;
+    from?: number;
+    to?: number;
+    sort?: Sort;
+    page?: number;
+    pageSize?: number;
+};
+
+export interface StatsApiResponse<T> {
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalCount: number;
+    result: T[];
+}
 
 export type TeamInfoResponse = {
     [key: string]: "almond" | "peanut";

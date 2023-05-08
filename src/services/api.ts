@@ -21,6 +21,11 @@ import {
     Instance,
     RateLimitHeaders,
     AmmInfosResponse,
+    TradeApiParams,
+    StatsApiResponse,
+    ProcessedPositionChangedEvent,
+    FundingApiParams,
+    ProcessedFundingPaymentEvent,
 } from "../types";
 
 class RateLimitError extends Error {
@@ -281,8 +286,8 @@ class NftperpApis {
     public readonly markPriceTwap = async (amm: Amm): Promise<string> => {
         try {
             const url = `${this._baseUrl}/${amm}/markpricetwap`;
-            const { data } = await axios.get<MarkPriceTwapResponse>(url);
-            return data.markPriceTwap;
+            const { data } = await axios.get<{ data: MarkPriceTwapResponse }>(url);
+            return data.data.markPriceTwap;
             /* eslint-disable */
         } catch (e: any) {
             this._checkError(e);
@@ -293,8 +298,40 @@ class NftperpApis {
     public readonly markPriceTwapInterval = async (amm: Amm): Promise<string> => {
         try {
             const url = `${this._baseUrl}/${amm}/markpricetwapinterval`;
-            const { data } = await axios.get<MarkPriceTwapIntervalResponse>(url);
-            return data.markPriceTwapInterval;
+            const { data } = await axios.get<{ data: MarkPriceTwapIntervalResponse }>(url);
+            return data.data.markPriceTwapInterval;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly trades = async (
+        params?: TradeApiParams
+    ): Promise<StatsApiResponse<ProcessedPositionChangedEvent>> => {
+        try {
+            const url = `${this._baseUrl}/stats/trades`;
+            const { data } = await axios.get<{
+                data: StatsApiResponse<ProcessedPositionChangedEvent>;
+            }>(url, { params });
+            return data.data;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly fundings = async (
+        params?: FundingApiParams
+    ): Promise<StatsApiResponse<ProcessedFundingPaymentEvent>> => {
+        try {
+            const url = `${this._baseUrl}/stats/fundings`;
+            const { data } = await axios.get<{
+                data: StatsApiResponse<ProcessedFundingPaymentEvent>;
+            }>(url, { params });
+            return data.data;
             /* eslint-disable */
         } catch (e: any) {
             this._checkError(e);

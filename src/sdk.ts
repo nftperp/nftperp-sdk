@@ -1,5 +1,4 @@
 import { constants, Contract, Overrides, Wallet } from "ethers";
-
 import { ClearingHouse, ERC20 } from "./typechain-types";
 import abis from "./abis";
 import Big from "big.js";
@@ -12,10 +11,12 @@ import {
     CalcFeeResponse,
     ClosePosTxSummaryResponse,
     Decimal,
+    FundingApiParams,
     FundingInfoResponse,
     Instance,
     PositionResponse,
     Side,
+    TradeApiParams,
     TransactionSummaryResponse,
 } from "./types";
 import NftperpApis from "./services/api";
@@ -424,6 +425,39 @@ export class SDK {
     public async getMaintenanceMarginRatio(amm: Amm): Promise<string> {
         const { maintenanceMarginRatio } = await this._api.ammInfo(amm);
         return maintenanceMarginRatio;
+    }
+
+    /**
+     * Get trades
+     * @param params.amm amm eg bayc
+     * @param params.trader trader address
+     * @param params.hash transaction hash
+     * @param params.from from timestamp unix (in seconds, inclusive)
+     * @param params.to to timestamp unix (in seconds, inclusive)
+     * @param params.sort asc or desc
+     * @param params.page page number for pagination
+     * @param parans.pageSize limit per page
+     * @returns trade info
+     */
+    public async getTrades(params?: TradeApiParams) {
+        const result = await this._api.trades(params);
+        return result;
+    }
+
+    /**
+     * Get trades
+     * @param params.amm amm eg bayc
+     * @param params.hash transaction hash
+     * @param params.from from timestamp unix (in seconds, inclusive)
+     * @param params.to to timestamp unix (in seconds, inclusive)
+     * @param params.sort asc or desc
+     * @param params.page page number for pagination
+     * @param parans.pageSize limit per page
+     * @returns trade info
+     */
+    public async getFundings(params?: FundingApiParams) {
+        const result = await this._api.fundings(params);
+        return result;
     }
 
     /**

@@ -25,6 +25,16 @@ export enum Instance {
     BETA = "BETA",
 }
 
+export enum Sort {
+    ASC = "1",
+    DESC = "-1",
+}
+
+export enum EVENT {
+    TRADE = "TRADE",
+    FUNDING = "FUNDING",
+}
+
 export type InstanceConfig = {
     apiBaseUrl: string;
     chainId: number;

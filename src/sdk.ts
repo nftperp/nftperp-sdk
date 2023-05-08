@@ -1,23 +1,29 @@
-import { constants, Contract, Wallet } from "ethers";
-
+import { constants, Contract, Overrides, Wallet } from "ethers";
 import { ClearingHouse, ERC20 } from "./typechain-types";
 import abis from "./abis";
 import Big from "big.js";
+import io, { Socket } from "socket.io-client";
 import { getAmmAddress, getInstanceConfig } from "./utils/configDao";
 import { big, fromWei, stringify, toDecimalWei } from "./utils/format";
 import {
     Amm,
     AmmInfoResponse,
+    AmmInfosResponse,
     CalcFeeResponse,
     ClosePosTxSummaryResponse,
     Decimal,
+    EVENT,
+    FundingApiParams,
     FundingInfoResponse,
     Instance,
     PositionResponse,
     Side,
+    StatsApiResponse,
+    TradeApiParams,
     TransactionSummaryResponse,
 } from "./types";
 import NftperpApis from "./services/api";
+import { config } from "./config";
 
 export class SDK {
     private readonly _wallet: Wallet;
@@ -27,6 +33,7 @@ export class SDK {
     private readonly _weth: ERC20;
 
     private readonly _api: NftperpApis;
+    private readonly _socket: Socket;
     /**
      * @param params params for initing sdk
      * @param params.wallet ethers wallet class for signing txs
@@ -44,6 +51,7 @@ export class SDK {
         this._instance = instance;
 
         this._api = new NftperpApis(instance);
+        this._socket = io(config[instance].apiBaseUrl.replace(`https`, "wss"));
     }
 
     /**
@@ -55,13 +63,16 @@ export class SDK {
      * @param params.leverage leverage
      * @returns tx hash
      */
-    public async openPosition(params: {
-        amm: Amm;
-        side: Side;
-        amount: number;
-        leverage: number;
-        slippagePercent?: number;
-    }): Promise<string> {
+    public async openPosition(
+        params: {
+            amm: Amm;
+            side: Side;
+            amount: number;
+            leverage: number;
+            slippagePercent?: number;
+        },
+        overrides?: Overrides
+    ): Promise<string> {
         const { amm, side, amount, leverage, slippagePercent } = params;
 
         this._checkAmm(amm);
@@ -85,7 +96,8 @@ export class SDK {
             side === Side.BUY ? 0 : 1,
             toDecimalWei(amount),
             toDecimalWei(leverage),
-            toDecimalWei(baseAssetAmountLimit)
+            toDecimalWei(baseAssetAmountLimit),
+            overrides
         );
     }
 
@@ -95,11 +107,14 @@ export class SDK {
      * @param params.amm amm eg bayc
      * @returns tx hash
      */
-    public async closePosition(params: {
-        amm: Amm;
-        closePercent?: number;
-        slippagePercent?: number;
-    }): Promise<string> {
+    public async closePosition(
+        params: {
+            amm: Amm;
+            closePercent?: number;
+            slippagePercent?: number;
+        },
+        overrides?: Overrides
+    ): Promise<string> {
         const { amm, closePercent: _closePercent, slippagePercent } = params;
 
         // validate params
@@ -124,12 +139,14 @@ export class SDK {
             return await this._partialClose(
                 this._getAmmAddress(amm),
                 toDecimalWei(closePercent / 100),
-                toDecimalWei(quoteAssetAmountLimit)
+                toDecimalWei(quoteAssetAmountLimit),
+                overrides
             );
         }
         return await this._closePosition(
             this._getAmmAddress(amm),
-            toDecimalWei(quoteAssetAmountLimit)
+            toDecimalWei(quoteAssetAmountLimit),
+            overrides
         );
     }
 
@@ -140,7 +157,10 @@ export class SDK {
      * @param params.amount margin to add
      * @returns tx hash
      */
-    public async addMargin(params: { amm: Amm; amount: number }): Promise<string> {
+    public async addMargin(
+        params: { amm: Amm; amount: number },
+        overrides?: Overrides
+    ): Promise<string> {
         const { amm, amount } = params;
         const { size } = await this.getPosition(amm);
         if (big(size).eq(0)) {
@@ -149,7 +169,7 @@ export class SDK {
         await this._checkBalance(big(amount));
         await this._checkAllowance(big(amount));
 
-        return await this._addMargin(this._getAmmAddress(amm), toDecimalWei(amount));
+        return await this._addMargin(this._getAmmAddress(amm), toDecimalWei(amount), overrides);
     }
 
     /**
@@ -159,7 +179,10 @@ export class SDK {
      * @param params.amount margin to remove
      * @returns
      */
-    public async removeMargin(params: { amm: Amm; amount: number }): Promise<string> {
+    public async removeMargin(
+        params: { amm: Amm; amount: number },
+        overrides?: Overrides
+    ): Promise<string> {
         const { amm, amount } = params;
         const { size, trader } = await this.getPosition(amm);
         if (big(size).eq(0)) {
@@ -170,7 +193,7 @@ export class SDK {
             throw new Error("remove amount beyond free collateral");
         }
 
-        return await this._removeMargin(this._getAmmAddress(amm), toDecimalWei(amount));
+        return await this._removeMargin(this._getAmmAddress(amm), toDecimalWei(amount), overrides);
     }
 
     /**
@@ -392,6 +415,15 @@ export class SDK {
     }
 
     /**
+     * Get all amm infos
+     * @returns amm Infos
+     */
+    public async getAllAmmInfos(): Promise<AmmInfosResponse> {
+        const ammInfos = await this._api.ammInfos();
+        return ammInfos;
+    }
+
+    /**
      * Get margin ratio. margin ratio = active margin / active notional
      * @param params.amm amm eg bayc
      * @returns margin ratio
@@ -399,6 +431,48 @@ export class SDK {
     public async getMaintenanceMarginRatio(amm: Amm): Promise<string> {
         const { maintenanceMarginRatio } = await this._api.ammInfo(amm);
         return maintenanceMarginRatio;
+    }
+
+    /**
+     * Get trades
+     * @param params.amm amm eg bayc
+     * @param params.trader trader address
+     * @param params.hash transaction hash
+     * @param params.from from timestamp unix (in seconds, inclusive)
+     * @param params.to to timestamp unix (in seconds, inclusive)
+     * @param params.sort asc or desc
+     * @param params.page page number for pagination
+     * @param parans.pageSize limit per page
+     * @returns trade info
+     */
+    public async getTrades(params?: TradeApiParams) {
+        const result = await this._api.trades(params);
+        return result;
+    }
+
+    /**
+     * Get trades
+     * @param params.amm amm eg bayc
+     * @param params.hash transaction hash
+     * @param params.from from timestamp unix (in seconds, inclusive)
+     * @param params.to to timestamp unix (in seconds, inclusive)
+     * @param params.sort asc or desc
+     * @param params.page page number for pagination
+     * @param parans.pageSize limit per page
+     * @returns trade info
+     */
+    public async getFundings(params?: FundingApiParams) {
+        const result = await this._api.fundings(params);
+        return result;
+    }
+
+    /**
+     * event streamer
+     * @param event event name eg TRADE
+     * @param callback fn yielding the event data
+     */
+    public on<T = any>(event: EVENT, callback: (data: StatsApiResponse<T>) => any) {
+        this._socket.on(event, callback);
     }
 
     /**
@@ -503,9 +577,17 @@ export class SDK {
         side: number,
         margin: Decimal,
         leverage: Decimal,
-        baseAssetAmountLimit: Decimal
+        baseAssetAmountLimit: Decimal,
+        overrides?: Overrides
     ): Promise<string> {
-        const tx = await this._ch.openPosition(amm, side, margin, leverage, baseAssetAmountLimit);
+        const tx = await this._ch.openPosition(
+            amm,
+            side,
+            margin,
+            leverage,
+            baseAssetAmountLimit,
+            overrides
+        );
         return tx.hash;
     }
 
@@ -513,8 +595,12 @@ export class SDK {
      * close position
      * @returns hash
      */
-    private async _closePosition(amm: string, quoteAssetAmountLimit: Decimal) {
-        const tx = await this._ch.closePosition(amm, quoteAssetAmountLimit);
+    private async _closePosition(
+        amm: string,
+        quoteAssetAmountLimit: Decimal,
+        overrides?: Overrides
+    ) {
+        const tx = await this._ch.closePosition(amm, quoteAssetAmountLimit, overrides);
         return tx.hash;
     }
 
@@ -525,9 +611,15 @@ export class SDK {
     private async _partialClose(
         amm: string,
         partialCloseRatio: Decimal,
-        quoteAssetAmountLimit: Decimal
+        quoteAssetAmountLimit: Decimal,
+        overrides?: Overrides
     ): Promise<string> {
-        const tx = await this._ch.partialClose(amm, partialCloseRatio, quoteAssetAmountLimit);
+        const tx = await this._ch.partialClose(
+            amm,
+            partialCloseRatio,
+            quoteAssetAmountLimit,
+            overrides
+        );
         return tx.hash;
     }
 
@@ -535,8 +627,8 @@ export class SDK {
      * add margin
      * @returns hash
      */
-    private async _addMargin(amm: string, marginToAdd: Decimal) {
-        const tx = await this._ch.addMargin(amm, marginToAdd);
+    private async _addMargin(amm: string, marginToAdd: Decimal, overrides?: Overrides) {
+        const tx = await this._ch.addMargin(amm, marginToAdd, overrides);
         return tx.hash;
     }
 
@@ -544,8 +636,12 @@ export class SDK {
      * remove margin
      * @returns hash
      */
-    private async _removeMargin(amm: string, marginToRemove: Decimal): Promise<string> {
-        const tx = await this._ch.removeMargin(amm, marginToRemove);
+    private async _removeMargin(
+        amm: string,
+        marginToRemove: Decimal,
+        overrides?: Overrides
+    ): Promise<string> {
+        const tx = await this._ch.removeMargin(amm, marginToRemove, overrides);
         return tx.hash;
     }
 

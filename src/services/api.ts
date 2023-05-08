@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosHeaders } from "axios";
 import { config } from "../config";
 import {
     AmmInfoResponse,
@@ -19,7 +19,29 @@ import {
     MarkPriceTwapIntervalResponse,
     MarkPriceTwapResponse,
     Instance,
+    RateLimitHeaders,
+    AmmInfosResponse,
+    TradeApiParams,
+    StatsApiResponse,
+    ProcessedPositionChangedEvent,
+    FundingApiParams,
+    ProcessedFundingPaymentEvent,
 } from "../types";
+
+class RateLimitError extends Error {
+    public readonly ratelimit: number;
+    public readonly ratelimitRemaining: number;
+    public readonly ratelimitReset: number;
+    public readonly retryAfter: number;
+
+    constructor(message: string, rlHeaders: RateLimitHeaders) {
+        super(message);
+        this.ratelimit = rlHeaders.ratelimit;
+        this.ratelimitRemaining = rlHeaders.ratelimitRemaining;
+        this.ratelimitReset = rlHeaders.ratelimitReset;
+        this.retryAfter = rlHeaders.retryAfter;
+    }
+}
 
 class NftperpApis {
     private readonly _baseUrl;
@@ -94,6 +116,18 @@ class NftperpApis {
         try {
             const url = `${this._baseUrl}/${amm}`;
             const { data } = await axios.get<{ data: AmmInfoResponse }>(url);
+            return data.data;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly ammInfos = async (): Promise<AmmInfosResponse> => {
+        try {
+            const url = `${this._baseUrl}/amms`;
+            const { data } = await axios.get<{ data: AmmInfosResponse }>(url);
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -252,8 +286,8 @@ class NftperpApis {
     public readonly markPriceTwap = async (amm: Amm): Promise<string> => {
         try {
             const url = `${this._baseUrl}/${amm}/markpricetwap`;
-            const { data } = await axios.get<MarkPriceTwapResponse>(url);
-            return data.markPriceTwap;
+            const { data } = await axios.get<{ data: MarkPriceTwapResponse }>(url);
+            return data.data.markPriceTwap;
             /* eslint-disable */
         } catch (e: any) {
             this._checkError(e);
@@ -264,8 +298,40 @@ class NftperpApis {
     public readonly markPriceTwapInterval = async (amm: Amm): Promise<string> => {
         try {
             const url = `${this._baseUrl}/${amm}/markpricetwapinterval`;
-            const { data } = await axios.get<MarkPriceTwapIntervalResponse>(url);
-            return data.markPriceTwapInterval;
+            const { data } = await axios.get<{ data: MarkPriceTwapIntervalResponse }>(url);
+            return data.data.markPriceTwapInterval;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly trades = async (
+        params?: TradeApiParams
+    ): Promise<StatsApiResponse<ProcessedPositionChangedEvent>> => {
+        try {
+            const url = `${this._baseUrl}/stats/trades`;
+            const { data } = await axios.get<{
+                data: StatsApiResponse<ProcessedPositionChangedEvent>;
+            }>(url, { params });
+            return data.data;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly fundings = async (
+        params?: FundingApiParams
+    ): Promise<StatsApiResponse<ProcessedFundingPaymentEvent>> => {
+        try {
+            const url = `${this._baseUrl}/stats/fundings`;
+            const { data } = await axios.get<{
+                data: StatsApiResponse<ProcessedFundingPaymentEvent>;
+            }>(url, { params });
+            return data.data;
             /* eslint-disable */
         } catch (e: any) {
             this._checkError(e);
@@ -278,13 +344,28 @@ class NftperpApis {
         if (e.response) {
             const res = e.response;
             if (res.status === 429) {
-                throw new Error(`RATE_LIMIT: Too many requests, please try in a while`);
+                const rlHeaders = this._extractRateLimitHeaders(res.headers);
+                const error = new RateLimitError(
+                    `RATE_LIMIT: Too many requests, please try in a while`,
+                    rlHeaders
+                );
+                throw error;
             } else if (res.data && res.data.message) {
                 throw new Error(res.data.message);
             }
         }
         throw new Error(e.message);
         /* eslint-enable */
+    }
+
+    private _extractRateLimitHeaders(headers: AxiosHeaders): RateLimitHeaders {
+        const rateLimitHeaders: RateLimitHeaders = {
+            ratelimit: parseInt(headers.get("ratelimit-limit") as string),
+            ratelimitRemaining: parseInt(headers.get("ratelimit-remaining") as string),
+            ratelimitReset: parseInt(headers.get("ratelimit-reset") as string),
+            retryAfter: parseInt(headers.get("retry-after") as string),
+        };
+        return rateLimitHeaders;
     }
 }
 

@@ -1,6 +1,6 @@
 {
     "name": "@nftperp/sdk",
-    "version": "3.8.0",
+    "version": "3.9.0",
     "description": "SDK for nftperp protocol",
     "main": "sdk.js",
     "types": "sdk.d.ts",
@@ -8,7 +8,8 @@
         "build": "tsc",
         "start": "node dist/sdk.js",
         "prepare": "husky install",
-        "typechain": "typechain --target ethers-v5 --out-dir src/typechain-types 'src/abis/**/*.json'"
+        "typechain": "typechain --target ethers-v5 --out-dir src/typechain-types 'src/abis/**/*.json'",
+        "postinstall": "npm run typechain"
     },
     "homepage": "https://github.com/nftperp/nftperp-sdk/#readme",
     "repository": {
@@ -32,7 +33,8 @@
     "dependencies": {
         "axios": "^1.1.3",
         "big.js": "^6.2.1",
-        "ethers": "^5.6.9"
+        "ethers": "^5.6.9",
+        "socket.io-client": "^4.6.1"
     },
     "devDependencies": {
         "@typechain/ethers-v5": "^10.1.0",

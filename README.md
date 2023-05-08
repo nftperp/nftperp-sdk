@@ -15,7 +15,6 @@ For any queries, hop in the community discord and ask away [invite link](https:/
 ---
 
 -   [Installation](#installation)
--   [Terminology](#terminology)
 -   [Usage](#usage)
 
 ---
@@ -33,8 +32,6 @@ Also requires `ethers` library
 npm i ethers@5
 ```
 
-
-
 ### Usage
 
 #### Setup
@@ -51,9 +48,9 @@ recommended using one from infura/alchemy
 const provider = new ethers.providers.JsonRpcProvider("<your-rpc-url>");
 const wallet = new ethers.Wallet("<your-private-key>", provider);
 const nftperp = new SDK({ wallet, instance: Instance.TRADING_COMP });
-```  
+```
 
-If an error of the following occurs: `SyntaxError: Cannot use import statement outside a module`, add in the following to your `package.json` file  
+If an error of the following occurs: `SyntaxError: Cannot use import statement outside a module`, add in the following to your `package.json` file
 
 ```json
 "type": "module"
@@ -152,4 +149,98 @@ const indexPrice = await nftperp.getIndexPrice(Amm.BAYC);
 
 ```ts
 const fundingInfo = await nftperp.getFundingInfo(Amm.BAYC);
+```
+
+#### Get trades
+
+```ts
+await nftperp.getTrades({ amm: Amm.BAYC, trader: "<trader-address>" });
+await nftperp.getTrades({ from: 1680307200, to: 1682899200, sort: Sort.ASC });
+await nftperp.getTrades({ hash: "<transaction-hash>" });
+
+/**
+{
+    "page": 1,
+    "pageSize": 100,
+    "totalPages": 838,
+    "totalCount": 83705,
+    "result": [
+        {
+            "trader": ...,
+            "amm": ...,
+            "margin": ...,
+            "exchangedPositionNotional": ...,
+            "exchangedPositionSize": ...,
+            "fee": ...,
+            ...
+        },
+        ...
+    ]
+}
+*/
+```
+
+_note_: _this method is paginated, so use `page` to loop through!_
+
+#### Get fundings
+
+```ts
+await nftperp.getFundings({ amm: Amm.BAYC });
+await nftperp.getFundings({ from: 1680307200, to: 1682899200, sort: Sort.ASC });
+await nftperp.getFundings({ hash: "<transaction-hash>" });
+
+/**
+{
+    "page": 1,
+    "pageSize": 100,
+    "totalPages": 838,
+    "totalCount": 83705,
+    "result": [
+        {
+            "amm": ...,
+            "markPrice": ...,
+            "indexPrice": ...,
+            "fundingRateLong": ...,
+            "fundingRateShort": ...,
+            ...
+        },
+        ...
+    ]
+}
+*/
+```
+
+_note_: _this method is paginated, so use `page` to loop through!_
+
+#### Streamer
+
+Stream realtime events! directly consume parsed event data!
+
+```ts
+import { EVENT } from "@nftperp/sdk/types";
+
+nftperp.on(EVENT.TRADE, (data) => console.log(data));
+/**
+{
+    "trader": ...,
+    "amm": ...,
+    "margin": ...,
+    "exchangedPositionNotional": ...,
+    "exchangedPositionSize": ...,
+    "fee": ...,
+    ...
+}
+*/
+
+nftperp.on(EVENT.FUNDING, (data) => console.log(data));
+/**
+{
+    "amm": ...,
+    "markPrice": ...,
+    "indexPrice": ...,
+    "fundingRateLong": ...,
+    "fundingRateShort": ...,
+    ...
+}
+*/
 ```

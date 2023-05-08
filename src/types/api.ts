@@ -70,6 +70,10 @@ export type AmmInfoResponse = {
     nextEstimatedFundingRateShort: string;
 };
 
+export type AmmInfosResponse = {
+    [key in Amm]: AmmInfoResponse;
+};
+
 export type TransactionSummaryResponse = {
     outputSize: string;
     entryPrice: string;

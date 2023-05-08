@@ -8,6 +8,7 @@ import { big, fromWei, stringify, toDecimalWei } from "./utils/format";
 import {
     Amm,
     AmmInfoResponse,
+    AmmInfosResponse,
     CalcFeeResponse,
     ClosePosTxSummaryResponse,
     Decimal,
@@ -404,6 +405,15 @@ export class SDK {
     public async getAmmInfo(amm: Amm): Promise<AmmInfoResponse> {
         const ammInfo = await this._api.ammInfo(amm);
         return ammInfo;
+    }
+
+    /**
+     * Get all amm infos
+     * @returns amm Infos
+     */
+    public async getAllAmmInfos(): Promise<AmmInfosResponse> {
+        const ammInfos = await this._api.ammInfos();
+        return ammInfos;
     }
 
     /**

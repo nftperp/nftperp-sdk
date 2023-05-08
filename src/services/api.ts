@@ -20,6 +20,7 @@ import {
     MarkPriceTwapResponse,
     Instance,
     RateLimitHeaders,
+    AmmInfosResponse,
 } from "../types";
 
 class RateLimitError extends Error {
@@ -110,6 +111,18 @@ class NftperpApis {
         try {
             const url = `${this._baseUrl}/${amm}`;
             const { data } = await axios.get<{ data: AmmInfoResponse }>(url);
+            return data.data;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly ammInfos = async (): Promise<AmmInfosResponse> => {
+        try {
+            const url = `${this._baseUrl}/amms`;
+            const { data } = await axios.get<{ data: AmmInfosResponse }>(url);
             return data.data;
             /* eslint-disable */
         } catch (e: any) {

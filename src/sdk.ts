@@ -2,6 +2,7 @@ import { constants, Contract, Overrides, Wallet } from "ethers";
 import { ClearingHouse, ERC20 } from "./typechain-types";
 import abis from "./abis";
 import Big from "big.js";
+import io, { Socket } from "socket.io-client";
 import { getAmmAddress, getInstanceConfig } from "./utils/configDao";
 import { big, fromWei, stringify, toDecimalWei } from "./utils/format";
 import {
@@ -11,15 +12,18 @@ import {
     CalcFeeResponse,
     ClosePosTxSummaryResponse,
     Decimal,
+    EVENT,
     FundingApiParams,
     FundingInfoResponse,
     Instance,
     PositionResponse,
     Side,
+    StatsApiResponse,
     TradeApiParams,
     TransactionSummaryResponse,
 } from "./types";
 import NftperpApis from "./services/api";
+import { config } from "./config";
 
 export class SDK {
     private readonly _wallet: Wallet;
@@ -29,6 +33,7 @@ export class SDK {
     private readonly _weth: ERC20;
 
     private readonly _api: NftperpApis;
+    private readonly _socket: Socket;
     /**
      * @param params params for initing sdk
      * @param params.wallet ethers wallet class for signing txs
@@ -46,6 +51,7 @@ export class SDK {
         this._instance = instance;
 
         this._api = new NftperpApis(instance);
+        this._socket = io(config[instance].apiBaseUrl.replace(`https`, "wss"));
     }
 
     /**
@@ -458,6 +464,15 @@ export class SDK {
     public async getFundings(params?: FundingApiParams) {
         const result = await this._api.fundings(params);
         return result;
+    }
+
+    /**
+     * event streamer
+     * @param event event name eg TRADE
+     * @param callback fn yielding the event data
+     */
+    public on<T = any>(event: EVENT, callback: (data: StatsApiResponse<T>) => any) {
+        this._socket.on(event, callback);
     }
 
     /**

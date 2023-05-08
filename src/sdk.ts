@@ -1,4 +1,4 @@
-import { constants, Contract, Wallet } from "ethers";
+import { constants, Contract, Overrides, Wallet } from "ethers";
 
 import { ClearingHouse, ERC20 } from "./typechain-types";
 import abis from "./abis";
@@ -55,13 +55,16 @@ export class SDK {
      * @param params.leverage leverage
      * @returns tx hash
      */
-    public async openPosition(params: {
-        amm: Amm;
-        side: Side;
-        amount: number;
-        leverage: number;
-        slippagePercent?: number;
-    }): Promise<string> {
+    public async openPosition(
+        params: {
+            amm: Amm;
+            side: Side;
+            amount: number;
+            leverage: number;
+            slippagePercent?: number;
+        },
+        overrides?: Overrides
+    ): Promise<string> {
         const { amm, side, amount, leverage, slippagePercent } = params;
 
         this._checkAmm(amm);
@@ -85,7 +88,8 @@ export class SDK {
             side === Side.BUY ? 0 : 1,
             toDecimalWei(amount),
             toDecimalWei(leverage),
-            toDecimalWei(baseAssetAmountLimit)
+            toDecimalWei(baseAssetAmountLimit),
+            overrides
         );
     }
 
@@ -95,11 +99,14 @@ export class SDK {
      * @param params.amm amm eg bayc
      * @returns tx hash
      */
-    public async closePosition(params: {
-        amm: Amm;
-        closePercent?: number;
-        slippagePercent?: number;
-    }): Promise<string> {
+    public async closePosition(
+        params: {
+            amm: Amm;
+            closePercent?: number;
+            slippagePercent?: number;
+        },
+        overrides?: Overrides
+    ): Promise<string> {
         const { amm, closePercent: _closePercent, slippagePercent } = params;
 
         // validate params
@@ -124,12 +131,14 @@ export class SDK {
             return await this._partialClose(
                 this._getAmmAddress(amm),
                 toDecimalWei(closePercent / 100),
-                toDecimalWei(quoteAssetAmountLimit)
+                toDecimalWei(quoteAssetAmountLimit),
+                overrides
             );
         }
         return await this._closePosition(
             this._getAmmAddress(amm),
-            toDecimalWei(quoteAssetAmountLimit)
+            toDecimalWei(quoteAssetAmountLimit),
+            overrides
         );
     }
 
@@ -140,7 +149,10 @@ export class SDK {
      * @param params.amount margin to add
      * @returns tx hash
      */
-    public async addMargin(params: { amm: Amm; amount: number }): Promise<string> {
+    public async addMargin(
+        params: { amm: Amm; amount: number },
+        overrides?: Overrides
+    ): Promise<string> {
         const { amm, amount } = params;
         const { size } = await this.getPosition(amm);
         if (big(size).eq(0)) {
@@ -149,7 +161,7 @@ export class SDK {
         await this._checkBalance(big(amount));
         await this._checkAllowance(big(amount));
 
-        return await this._addMargin(this._getAmmAddress(amm), toDecimalWei(amount));
+        return await this._addMargin(this._getAmmAddress(amm), toDecimalWei(amount), overrides);
     }
 
     /**
@@ -159,7 +171,10 @@ export class SDK {
      * @param params.amount margin to remove
      * @returns
      */
-    public async removeMargin(params: { amm: Amm; amount: number }): Promise<string> {
+    public async removeMargin(
+        params: { amm: Amm; amount: number },
+        overrides?: Overrides
+    ): Promise<string> {
         const { amm, amount } = params;
         const { size, trader } = await this.getPosition(amm);
         if (big(size).eq(0)) {
@@ -170,7 +185,7 @@ export class SDK {
             throw new Error("remove amount beyond free collateral");
         }
 
-        return await this._removeMargin(this._getAmmAddress(amm), toDecimalWei(amount));
+        return await this._removeMargin(this._getAmmAddress(amm), toDecimalWei(amount), overrides);
     }
 
     /**
@@ -503,9 +518,17 @@ export class SDK {
         side: number,
         margin: Decimal,
         leverage: Decimal,
-        baseAssetAmountLimit: Decimal
+        baseAssetAmountLimit: Decimal,
+        overrides?: Overrides
     ): Promise<string> {
-        const tx = await this._ch.openPosition(amm, side, margin, leverage, baseAssetAmountLimit);
+        const tx = await this._ch.openPosition(
+            amm,
+            side,
+            margin,
+            leverage,
+            baseAssetAmountLimit,
+            overrides
+        );
         return tx.hash;
     }
 
@@ -513,8 +536,12 @@ export class SDK {
      * close position
      * @returns hash
      */
-    private async _closePosition(amm: string, quoteAssetAmountLimit: Decimal) {
-        const tx = await this._ch.closePosition(amm, quoteAssetAmountLimit);
+    private async _closePosition(
+        amm: string,
+        quoteAssetAmountLimit: Decimal,
+        overrides?: Overrides
+    ) {
+        const tx = await this._ch.closePosition(amm, quoteAssetAmountLimit, overrides);
         return tx.hash;
     }
 
@@ -525,9 +552,15 @@ export class SDK {
     private async _partialClose(
         amm: string,
         partialCloseRatio: Decimal,
-        quoteAssetAmountLimit: Decimal
+        quoteAssetAmountLimit: Decimal,
+        overrides?: Overrides
     ): Promise<string> {
-        const tx = await this._ch.partialClose(amm, partialCloseRatio, quoteAssetAmountLimit);
+        const tx = await this._ch.partialClose(
+            amm,
+            partialCloseRatio,
+            quoteAssetAmountLimit,
+            overrides
+        );
         return tx.hash;
     }
 
@@ -535,8 +568,8 @@ export class SDK {
      * add margin
      * @returns hash
      */
-    private async _addMargin(amm: string, marginToAdd: Decimal) {
-        const tx = await this._ch.addMargin(amm, marginToAdd);
+    private async _addMargin(amm: string, marginToAdd: Decimal, overrides?: Overrides) {
+        const tx = await this._ch.addMargin(amm, marginToAdd, overrides);
         return tx.hash;
     }
 
@@ -544,8 +577,12 @@ export class SDK {
      * remove margin
      * @returns hash
      */
-    private async _removeMargin(amm: string, marginToRemove: Decimal): Promise<string> {
-        const tx = await this._ch.removeMargin(amm, marginToRemove);
+    private async _removeMargin(
+        amm: string,
+        marginToRemove: Decimal,
+        overrides?: Overrides
+    ): Promise<string> {
+        const tx = await this._ch.removeMargin(amm, marginToRemove, overrides);
         return tx.hash;
     }
 

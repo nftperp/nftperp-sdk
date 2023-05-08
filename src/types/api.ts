@@ -1,3 +1,4 @@
+import { Overrides } from "ethers";
 import { Amm, Side } from "./index";
 
 export type MarkPriceResponse = {

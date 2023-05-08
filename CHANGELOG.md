@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.9.0](https://github.com/nftperp/nftperp-sdk/compare/v3.8.0...v3.9.0) (2023-05-08)
+
+
+### Features
+
+* add param for overriding gas settings on write methods ([f9e566b](https://github.com/nftperp/nftperp-sdk/commit/f9e566b5115cca7f25870369bb37890bf614350f))
+* **method:** getAllAmmInfos, consildated method for fetching all amm data in one call ([ca05a66](https://github.com/nftperp/nftperp-sdk/commit/ca05a66882043bdfe93d07b9069e310067106ac8))
+* **method:** getTrades and getFundings (with pagination) ([d91b421](https://github.com/nftperp/nftperp-sdk/commit/d91b42123e5e3af5e830812b0297ffe7fdebb582))
+* **streamer:** event streamer ([e8fb4fd](https://github.com/nftperp/nftperp-sdk/commit/e8fb4fd6f3c1af4f57403ad728b4e1d883a24ef3))
+
 ## [3.8.0](https://github.com/nftperp/nftperp-sdk/compare/v3.7.2...v3.8.0) (2023-03-22)
 
 

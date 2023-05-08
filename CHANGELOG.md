@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.9.1](https://github.com/nftperp/nftperp-sdk/compare/v3.9.0...v3.9.1) (2023-05-08)
+
+
+### Bug Fixes
+
+* **build:** postinstall type generation ([92241d0](https://github.com/nftperp/nftperp-sdk/commit/92241d06bccca07a3ecb0da85d5b9c26dd65cf66))
+
 ## [3.9.0](https://github.com/nftperp/nftperp-sdk/compare/v3.8.0...v3.9.0) (2023-05-08)
 
 

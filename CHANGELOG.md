@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.9.2](https://github.com/nftperp/nftperp-sdk/compare/v3.9.0...v3.9.2) (2023-05-10)
+
+
+### Bug Fixes
+
+* **build:** postinstall type generation ([92241d0](https://github.com/nftperp/nftperp-sdk/commit/92241d06bccca07a3ecb0da85d5b9c26dd65cf66))
+* override parameter passing ([9480720](https://github.com/nftperp/nftperp-sdk/commit/948072003d400ebc930f86a129ed40b5ba8e1d01))
+
 ### [3.9.1](https://github.com/nftperp/nftperp-sdk/compare/v3.9.0...v3.9.1) (2023-05-08)
 
 

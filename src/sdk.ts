@@ -1,4 +1,4 @@
-import { constants, Contract, Overrides, Wallet } from "ethers";
+import { constants, Contract, Overrides, providers, Wallet } from "ethers";
 import { ClearingHouse, ERC20 } from "./typechain-types";
 import abis from "./abis";
 import Big from "big.js";
@@ -578,7 +578,7 @@ export class SDK {
         margin: Decimal,
         leverage: Decimal,
         baseAssetAmountLimit: Decimal,
-        overrides?: Overrides
+        overrides: Overrides = {}
     ): Promise<string> {
         const tx = await this._ch.openPosition(
             amm,
@@ -598,7 +598,7 @@ export class SDK {
     private async _closePosition(
         amm: string,
         quoteAssetAmountLimit: Decimal,
-        overrides?: Overrides
+        overrides: Overrides = {}
     ) {
         const tx = await this._ch.closePosition(amm, quoteAssetAmountLimit, overrides);
         return tx.hash;
@@ -612,7 +612,7 @@ export class SDK {
         amm: string,
         partialCloseRatio: Decimal,
         quoteAssetAmountLimit: Decimal,
-        overrides?: Overrides
+        overrides: Overrides = {}
     ): Promise<string> {
         const tx = await this._ch.partialClose(
             amm,
@@ -627,7 +627,7 @@ export class SDK {
      * add margin
      * @returns hash
      */
-    private async _addMargin(amm: string, marginToAdd: Decimal, overrides?: Overrides) {
+    private async _addMargin(amm: string, marginToAdd: Decimal, overrides: Overrides = {}) {
         const tx = await this._ch.addMargin(amm, marginToAdd, overrides);
         return tx.hash;
     }
@@ -639,7 +639,7 @@ export class SDK {
     private async _removeMargin(
         amm: string,
         marginToRemove: Decimal,
-        overrides?: Overrides
+        overrides: Overrides = {}
     ): Promise<string> {
         const tx = await this._ch.removeMargin(amm, marginToRemove, overrides);
         return tx.hash;

@@ -34,6 +34,7 @@ export const config: Config = {
             MILADY: "0x28d45Df0D075f229aDcbAfF59Bf90d39e80D875E",
             MAYC: "0x6BcCA37F6DEAcB3cfCA095f08F6d72C65D01992B",
             PPG: "0xaD7d8b1BEAF28225bBDD7F76D2604decFD0B6013",
+            REMIO: "0x8215797e793b39fd2E8d1e9760c39a7Bea16ad55",
         },
     },
 };

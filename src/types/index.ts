@@ -13,6 +13,7 @@ export enum Amm {
     BGAN = "BGAN",
     GOBBLERS = "GOBBLERS",
     PPG = "PPG",
+    REMIO = "REMIO",
 }
 
 export enum Side {

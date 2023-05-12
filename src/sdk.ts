@@ -471,7 +471,7 @@ export class SDK {
      * @param event event name eg TRADE
      * @param callback fn yielding the event data
      */
-    public on<T = any>(event: EVENT, callback: (data: StatsApiResponse<T>) => any) {
+    public on(event: EVENT, callback: (data: any) => any) {
         this._socket.on(event, callback);
     }
 

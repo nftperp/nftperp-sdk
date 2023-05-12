@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.9.3](https://github.com/nftperp/nftperp-sdk/compare/v3.9.2...v3.9.3) (2023-05-12)
+
+
+### Bug Fixes
+
+* typing for .on event response ([9d68e13](https://github.com/nftperp/nftperp-sdk/commit/9d68e13b0888b7cb2420ab42d1f548d75bd51a85))
+
 ### [3.9.2](https://github.com/nftperp/nftperp-sdk/compare/v3.9.0...v3.9.2) (2023-05-10)
 
 

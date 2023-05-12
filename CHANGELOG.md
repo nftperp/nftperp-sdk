@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.10.0](https://github.com/nftperp/nftperp-sdk/compare/v3.9.3...v3.10.0) (2023-05-12)
+
+
+### Features
+
+* **amm:** add remio amm ([b59c250](https://github.com/nftperp/nftperp-sdk/commit/b59c250d4b50fd3409289ff302790e7bda52f439))
+
 ### [3.9.3](https://github.com/nftperp/nftperp-sdk/compare/v3.9.2...v3.9.3) (2023-05-12)
 
 

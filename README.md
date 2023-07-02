@@ -26,7 +26,7 @@ npm i @nftperp/sdk
 ```
 
 Also requires `ethers` library  
-**NOTE:** If `npm i ethers` is used, it will default to installing `ethers v6`, which will create errors when initialising the SDK
+**NOTE:** _ethers v6 introduced a lot of breaking changes and is unsupported yet. please install v5 as below_
 
 ```sh
 npm i ethers@5
@@ -39,30 +39,16 @@ npm i ethers@5
 ```ts
 import { ethers } from "ethers";
 import { SDK } from "@nftperp/sdk";
-import { Instance } from "@nftperp/sdk/types";
 
 /**
 the general rpc url for arb mainnet is "https://arb1.arbitrum.io/rpc"
 recommended using one from infura/alchemy
+
+sdk is open source, `wallet` is safe to connect :wink:
 */
 const provider = new ethers.providers.JsonRpcProvider("<your-rpc-url>");
 const wallet = new ethers.Wallet("<your-private-key>", provider);
-const nftperp = new SDK({ wallet, instance: Instance.TRADING_COMP });
-```
-
-If an error of the following occurs: `SyntaxError: Cannot use import statement outside a module`, add in the following to your `package.json` file
-
-```json
-"type": "module"
-```
-
-If an error of the following occurs: `Directory import '..\@nftperp\sdk\types' is not supported resolving ES modules`, do the following:
-
-```ts
-// REPLACE
-import { Instance } from "@nftperp/sdk/types";
-// WITH
-import { Instance } from "@nftperp/sdk/types/index.js";
+const nftperp = new SDK({ wallet });
 ```
 
 #### Open a position
@@ -101,7 +87,7 @@ const hash = await nftperp.closePosition({
 });
 ```
 
-#### Estimate fee on position
+#### Pre calculate fee on trade
 
 ```ts
 const feeInfo = await nftperp.calcFee({
@@ -113,7 +99,7 @@ const feeInfo = await nftperp.calcFee({
 });
 ```
 
-#### Calculate open position transaction summary
+#### Pre calculate open position summary _(including ee)_
 
 ```ts
 const txSummary = await nftperp.getOpenPosTxSummary({
@@ -124,7 +110,7 @@ const txSummary = await nftperp.getOpenPosTxSummary({
 });
 ```
 
-#### Calculate close position transaction summary
+#### Pre calculate close position transaction summary _(including fee)_
 
 ```ts
 const txSummary = await nftperp.getClosePosTxSummary({
@@ -151,63 +137,22 @@ const indexPrice = await nftperp.getIndexPrice(Amm.BAYC);
 const fundingInfo = await nftperp.getFundingInfo(Amm.BAYC);
 ```
 
-#### Get trades
+#### Get historical trades
 
 ```ts
 await nftperp.getTrades({ amm: Amm.BAYC, trader: "<trader-address>" });
 await nftperp.getTrades({ from: 1680307200, to: 1682899200, sort: Sort.ASC });
 await nftperp.getTrades({ hash: "<transaction-hash>" });
-
-/**
-{
-    "page": 1,
-    "pageSize": 100,
-    "totalPages": 838,
-    "totalCount": 83705,
-    "result": [
-        {
-            "trader": ...,
-            "amm": ...,
-            "margin": ...,
-            "exchangedPositionNotional": ...,
-            "exchangedPositionSize": ...,
-            "fee": ...,
-            ...
-        },
-        ...
-    ]
-}
-*/
 ```
 
 _note_: _this method is paginated, so use `page` to loop through!_
 
-#### Get fundings
+#### Get historical fundings
 
 ```ts
 await nftperp.getFundings({ amm: Amm.BAYC });
 await nftperp.getFundings({ from: 1680307200, to: 1682899200, sort: Sort.ASC });
 await nftperp.getFundings({ hash: "<transaction-hash>" });
-
-/**
-{
-    "page": 1,
-    "pageSize": 100,
-    "totalPages": 838,
-    "totalCount": 83705,
-    "result": [
-        {
-            "amm": ...,
-            "markPrice": ...,
-            "indexPrice": ...,
-            "fundingRateLong": ...,
-            "fundingRateShort": ...,
-            ...
-        },
-        ...
-    ]
-}
-*/
 ```
 
 _note_: _this method is paginated, so use `page` to loop through!_
@@ -219,28 +164,6 @@ Stream realtime events! directly consume parsed event data!
 ```ts
 import { EVENT } from "@nftperp/sdk/types";
 
-nftperp.on(EVENT.TRADE, (data) => console.log(data));
-/**
-{
-    "trader": ...,
-    "amm": ...,
-    "margin": ...,
-    "exchangedPositionNotional": ...,
-    "exchangedPositionSize": ...,
-    "fee": ...,
-    ...
-}
-*/
-
-nftperp.on(EVENT.FUNDING, (data) => console.log(data));
-/**
-{
-    "amm": ...,
-    "markPrice": ...,
-    "indexPrice": ...,
-    "fundingRateLong": ...,
-    "fundingRateShort": ...,
-    ...
-}
-*/
+nftperp.on(EVENT.TRADE, (trade) => {});
+nftperp.on(EVENT.FUNDING, (funding) => {});
 ```

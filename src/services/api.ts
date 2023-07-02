@@ -52,7 +52,7 @@ class NftperpApis {
 
     public readonly markPrice = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm}/markprice`;
+            const url = `${this._baseUrl}/${amm}/markPrice`;
             const { data } = await axios.get<{ data: MarkPriceResponse }>(url);
             return data.data.markPrice;
             /* eslint-disable */
@@ -146,7 +146,7 @@ class NftperpApis {
         }
     ): Promise<TransactionSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/transactionsummary`;
+            const url = `${this._baseUrl}/${amm}/transactionSummary`;
             const { data } = await axios.get<{ data: TransactionSummaryResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
@@ -166,7 +166,7 @@ class NftperpApis {
         }
     ): Promise<CalcFeeResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/calcfee`;
+            const url = `${this._baseUrl}/${amm}/calcFee`;
             const { data } = await axios.get<{ data: CalcFeeResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
@@ -181,7 +181,7 @@ class NftperpApis {
         params: { trader: string; closePercent: number }
     ): Promise<ClosePosTxSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/closepostransactionsummary`;
+            const url = `${this._baseUrl}/${amm}/closePosTransactionSummary`;
             const { data } = await axios.get<{ data: ClosePosTxSummaryResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
@@ -205,7 +205,7 @@ class NftperpApis {
 
     public readonly fundingInfo = async (amm: Amm): Promise<FundingInfoResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/fundinginfo`;
+            const url = `${this._baseUrl}/${amm}/fundingInfo`;
             const { data } = await axios.get<{ data: FundingInfoResponse }>(url);
             return data.data;
             /* eslint-disable */
@@ -235,7 +235,7 @@ class NftperpApis {
         }
     ): Promise<MarginChangeSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/marginchangesummary`;
+            const url = `${this._baseUrl}/${amm}/marginChangeSummary`;
             const { data } = await axios.get<{ data: MarginChangeSummaryResponse }>(url, {
                 params,
             });
@@ -249,7 +249,7 @@ class NftperpApis {
 
     public readonly totalPositionSize = async (amm: Amm): Promise<TotalPositionSizeResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/totalpositionsize`;
+            const url = `${this._baseUrl}/${amm}/totalPositionSize`;
             const { data } = await axios.get<{ data: TotalPositionSizeResponse }>(url);
             return data.data;
             /* eslint-disable */
@@ -285,7 +285,7 @@ class NftperpApis {
 
     public readonly markPriceTwap = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm}/markpricetwap`;
+            const url = `${this._baseUrl}/${amm}/markPriceTwap`;
             const { data } = await axios.get<{ data: MarkPriceTwapResponse }>(url);
             return data.data.markPriceTwap;
             /* eslint-disable */
@@ -297,7 +297,7 @@ class NftperpApis {
 
     public readonly markPriceTwapInterval = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm}/markpricetwapinterval`;
+            const url = `${this._baseUrl}/${amm}/markPriceTwapInterval`;
             const { data } = await axios.get<{ data: MarkPriceTwapIntervalResponse }>(url);
             return data.data.markPriceTwapInterval;
             /* eslint-disable */
@@ -311,7 +311,7 @@ class NftperpApis {
         params?: TradeApiParams
     ): Promise<StatsApiResponse<ProcessedPositionChangedEvent>> => {
         try {
-            const url = `${this._baseUrl}/stats/trades`;
+            const url = `${this._baseUrl}/trades`;
             const { data } = await axios.get<{
                 data: StatsApiResponse<ProcessedPositionChangedEvent>;
             }>(url, { params });
@@ -327,7 +327,7 @@ class NftperpApis {
         params?: FundingApiParams
     ): Promise<StatsApiResponse<ProcessedFundingPaymentEvent>> => {
         try {
-            const url = `${this._baseUrl}/stats/fundings`;
+            const url = `${this._baseUrl}/fundings`;
             const { data } = await axios.get<{
                 data: StatsApiResponse<ProcessedFundingPaymentEvent>;
             }>(url, { params });

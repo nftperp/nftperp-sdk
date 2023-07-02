@@ -39,8 +39,8 @@ export class SDK {
      * @param params.wallet ethers wallet class for signing txs
      * @param params.instance instance
      */
-    constructor(params: { wallet: Wallet; instance: Instance }) {
-        const { wallet, instance } = params;
+    constructor(params: { wallet: Wallet; instance?: Instance }) {
+        const { wallet, instance = Instance.BETA } = params;
         void this._validateWalletAndInstance(wallet, instance);
 
         const { ch, weth } = getInstanceConfig(instance);
@@ -51,7 +51,7 @@ export class SDK {
         this._instance = instance;
 
         this._api = new NftperpApis(instance);
-        this._socket = io(config[instance].apiBaseUrl.replace(`https`, "wss"));
+        this._socket = io(config[instance].apiWsUrl);
     }
 
     /**

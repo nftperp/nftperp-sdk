@@ -3,6 +3,7 @@ import { Config } from "../types";
 export const config: Config = {
     TRADING_COMP: {
         apiBaseUrl: "https://api.nftperp.xyz",
+        apiWsUrl: "https://api.nftperp.xyz",
         chainId: 42161,
         ch: "0x1BBd56e80284B7064B44b2f4Bc494A268E614D36",
         chv: "0x50116ee8bC6C75d917E047fAa959398c78119813",
@@ -21,7 +22,8 @@ export const config: Config = {
         },
     },
     BETA: {
-        apiBaseUrl: "https://api3.nftperp.xyz",
+        apiBaseUrl: "https://api-v2.nftperp.xyz",
+        apiWsUrl: "wss://api3.nftperp.xyz",
         chainId: 42161,
         ch: "0x6fc05B7DFe545cd488E9D47d56CFaCA88F69A2e1",
         chv: "0x616260F052A324F6134889cB291C787f99b59734",

@@ -38,6 +38,7 @@ export enum EVENT {
 
 export type InstanceConfig = {
     apiBaseUrl: string;
+    apiWsUrl: string;
     chainId: number;
     ch: string;
     chv: string;

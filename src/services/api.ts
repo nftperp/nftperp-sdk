@@ -52,7 +52,7 @@ class NftperpApis {
 
     public readonly markPrice = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm}/markPrice`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/markPrice`;
             const { data } = await axios.get<{ data: MarkPriceResponse }>(url);
             return data.data.markPrice;
             /* eslint-disable */
@@ -64,7 +64,7 @@ class NftperpApis {
 
     public readonly indexPrice = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm}/indexPrice`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/indexPrice`;
             const { data } = await axios.get<{ data: IndexPriceResponse }>(url);
             return data.data.indexPrice;
             /* eslint-disable */
@@ -76,7 +76,7 @@ class NftperpApis {
 
     public readonly position = async (amm: Amm, trader: string): Promise<PositionResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/position?trader=${trader}`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/position?trader=${trader}`;
             const { data } = await axios.get<{ data: PositionResponse }>(url);
             return data.data;
             /* eslint-disable */
@@ -102,7 +102,7 @@ class NftperpApis {
 
     public readonly reserves = async (amm: Amm): Promise<ReserveResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/reserves`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/reserves`;
             const { data } = await axios.get<{ data: ReserveResponse }>(url);
             return data.data;
             /* eslint-disable */
@@ -114,7 +114,7 @@ class NftperpApis {
 
     public readonly ammInfo = async (amm: Amm): Promise<AmmInfoResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}`;
             const { data } = await axios.get<{ data: AmmInfoResponse }>(url);
             return data.data;
             /* eslint-disable */
@@ -146,7 +146,7 @@ class NftperpApis {
         }
     ): Promise<TransactionSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/transactionSummary`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/transactionSummary`;
             const { data } = await axios.get<{ data: TransactionSummaryResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
@@ -166,7 +166,7 @@ class NftperpApis {
         }
     ): Promise<CalcFeeResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/calcFee`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/calcFee`;
             const { data } = await axios.get<{ data: CalcFeeResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
@@ -181,7 +181,7 @@ class NftperpApis {
         params: { trader: string; closePercent: number }
     ): Promise<ClosePosTxSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/closePosTransactionSummary`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/closePosTransactionSummary`;
             const { data } = await axios.get<{ data: ClosePosTxSummaryResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
@@ -193,7 +193,7 @@ class NftperpApis {
 
     public readonly stats24h = async (amm: Amm): Promise<Stats24hResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/stats24h`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/stats24h`;
             const { data } = await axios.get<{ data: Stats24hResponse }>(url);
             return data.data;
             /* eslint-disable */
@@ -205,7 +205,7 @@ class NftperpApis {
 
     public readonly fundingInfo = async (amm: Amm): Promise<FundingInfoResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/fundingInfo`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/fundingInfo`;
             const { data } = await axios.get<{ data: FundingInfoResponse }>(url);
             return data.data;
             /* eslint-disable */
@@ -217,7 +217,7 @@ class NftperpApis {
 
     public readonly freeCollateral = async (amm: Amm, trader: string): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm}/freeCollateral?trader=${trader}`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/freeCollateral?trader=${trader}`;
             const { data } = await axios.get<{ data: string }>(url);
             return data.data;
             /* eslint-disable */
@@ -235,7 +235,7 @@ class NftperpApis {
         }
     ): Promise<MarginChangeSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/marginChangeSummary`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/marginChangeSummary`;
             const { data } = await axios.get<{ data: MarginChangeSummaryResponse }>(url, {
                 params,
             });
@@ -249,7 +249,7 @@ class NftperpApis {
 
     public readonly totalPositionSize = async (amm: Amm): Promise<TotalPositionSizeResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm}/totalPositionSize`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/totalPositionSize`;
             const { data } = await axios.get<{ data: TotalPositionSizeResponse }>(url);
             return data.data;
             /* eslint-disable */
@@ -285,7 +285,7 @@ class NftperpApis {
 
     public readonly markPriceTwap = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm}/markPriceTwap`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/markPriceTwap`;
             const { data } = await axios.get<{ data: MarkPriceTwapResponse }>(url);
             return data.data.markPriceTwap;
             /* eslint-disable */
@@ -297,7 +297,7 @@ class NftperpApis {
 
     public readonly markPriceTwapInterval = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm}/markPriceTwapInterval`;
+            const url = `${this._baseUrl}/${amm.toLowerCase()}/markPriceTwapInterval`;
             const { data } = await axios.get<{ data: MarkPriceTwapIntervalResponse }>(url);
             return data.data.markPriceTwapInterval;
             /* eslint-disable */

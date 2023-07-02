@@ -1,4 +1,4 @@
-import { constants, Contract, Overrides, providers, Wallet } from "ethers";
+import { constants, Contract, Overrides, Wallet } from "ethers";
 import { ClearingHouse, ERC20 } from "./typechain-types";
 import abis from "./abis";
 import Big from "big.js";

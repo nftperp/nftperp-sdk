@@ -2,30 +2,23 @@ import axios, { AxiosHeaders } from "axios";
 import { config } from "../config";
 import {
     AmmInfoResponse,
-    FundingInfoResponse,
     IndexPriceResponse,
     MarkPriceResponse,
     PositionResponse,
-    ReserveResponse,
-    Stats24hResponse,
-    TransactionSummaryResponse,
+    TransactionSummaryResponse as OpenSummaryResponse,
     Side,
-    ClosePosTxSummaryResponse,
+    CloseMarketSummaryResponse,
     MarginChangeSummaryResponse,
-    TotalPositionSizeResponse,
     BalancesResponse,
     Amm,
-    CalcFeeResponse,
-    MarkPriceTwapIntervalResponse,
-    MarkPriceTwapResponse,
     Instance,
     RateLimitHeaders,
     AmmInfosResponse,
     TradeApiParams,
     StatsApiResponse,
-    ProcessedPositionChangedEvent,
     FundingApiParams,
     ProcessedFundingPaymentEvent,
+    MarketTrade,
 } from "../types";
 
 class RateLimitError extends Error {
@@ -52,9 +45,11 @@ class NftperpApis {
 
     public readonly markPrice = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/markPrice`;
-            const { data } = await axios.get<{ data: MarkPriceResponse }>(url);
-            return data.data.markPrice;
+            const url = `${this._baseUrl}/markPrice`;
+            const { data } = await axios.get<MarkPriceResponse>(url, {
+                params: { amm },
+            });
+            return data.data;
             /* eslint-disable */
         } catch (e: any) {
             this._checkError(e);
@@ -64,9 +59,11 @@ class NftperpApis {
 
     public readonly indexPrice = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/indexPrice`;
-            const { data } = await axios.get<{ data: IndexPriceResponse }>(url);
-            return data.data.indexPrice;
+            const url = `${this._baseUrl}/indexPrice`;
+            const { data } = await axios.get<IndexPriceResponse>(url, {
+                params: { amm },
+            });
+            return data.data;
             /* eslint-disable */
         } catch (e: any) {
             this._checkError(e);
@@ -76,8 +73,10 @@ class NftperpApis {
 
     public readonly position = async (amm: Amm, trader: string): Promise<PositionResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/position?trader=${trader}`;
-            const { data } = await axios.get<{ data: PositionResponse }>(url);
+            const url = `${this._baseUrl}/position`;
+            const { data } = await axios.get<{ data: PositionResponse }>(url, {
+                params: { amm, trader },
+            });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -90,20 +89,10 @@ class NftperpApis {
         trader: string
     ): Promise<{ [key in Amm]: PositionResponse }> => {
         try {
-            const url = `${this._baseUrl}/positions?trader=${trader}`;
-            const { data } = await axios.get<{ data: { [key in Amm]: PositionResponse } }>(url);
-            return data.data;
-            /* eslint-disable */
-        } catch (e: any) {
-            this._checkError(e);
-            /* eslint-enable */
-        }
-    };
-
-    public readonly reserves = async (amm: Amm): Promise<ReserveResponse> => {
-        try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/reserves`;
-            const { data } = await axios.get<{ data: ReserveResponse }>(url);
+            const url = `${this._baseUrl}/positions`;
+            const { data } = await axios.get<{ data: { [key in Amm]: PositionResponse } }>(url, {
+                params: { trader },
+            });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -114,8 +103,10 @@ class NftperpApis {
 
     public readonly ammInfo = async (amm: Amm): Promise<AmmInfoResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}`;
-            const { data } = await axios.get<{ data: AmmInfoResponse }>(url);
+            const url = `${this._baseUrl}/info`;
+            const { data } = await axios.get<{ data: AmmInfoResponse }>(url, {
+                params: { amm },
+            });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -126,7 +117,7 @@ class NftperpApis {
 
     public readonly ammInfos = async (): Promise<AmmInfosResponse> => {
         try {
-            const url = `${this._baseUrl}/amms`;
+            const url = `${this._baseUrl}/infos`;
             const { data } = await axios.get<{ data: AmmInfosResponse }>(url);
             return data.data;
             /* eslint-disable */
@@ -136,18 +127,15 @@ class NftperpApis {
         }
     };
 
-    public readonly transactionSummary = async (
-        amm: Amm,
-        params: {
-            trader: string;
-            amount: number;
-            leverage: number;
-            side: Side;
-        }
-    ): Promise<TransactionSummaryResponse> => {
+    public readonly openSummary = async (params: {
+        amm: Amm;
+        margin: number;
+        leverage: number;
+        side: Side;
+    }): Promise<OpenSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/transactionSummary`;
-            const { data } = await axios.get<{ data: TransactionSummaryResponse }>(url, { params });
+            const url = `${this._baseUrl}/openSummary`;
+            const { data } = await axios.get<{ data: OpenSummaryResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -156,33 +144,14 @@ class NftperpApis {
         }
     };
 
-    public readonly calcFee = async (
-        amm: Amm,
-        params: {
-            amount: number;
-            leverage: number;
-            side: Side;
-            open: boolean;
-        }
-    ): Promise<CalcFeeResponse> => {
+    public readonly closeMarketSummary = async (params: {
+        amm: Amm;
+        trader: string;
+        closePercent: number;
+    }): Promise<CloseMarketSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/calcFee`;
-            const { data } = await axios.get<{ data: CalcFeeResponse }>(url, { params });
-            return data.data;
-            /* eslint-disable */
-        } catch (e: any) {
-            this._checkError(e);
-            /* eslint-ensable */
-        }
-    };
-
-    public readonly closePosTransactionSummary = async (
-        amm: Amm,
-        params: { trader: string; closePercent: number }
-    ): Promise<ClosePosTxSummaryResponse> => {
-        try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/closePosTransactionSummary`;
-            const { data } = await axios.get<{ data: ClosePosTxSummaryResponse }>(url, { params });
+            const url = `${this._baseUrl}/closeMarketSummary`;
+            const { data } = await axios.get<{ data: CloseMarketSummaryResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -191,10 +160,15 @@ class NftperpApis {
         }
     };
 
-    public readonly stats24h = async (amm: Amm): Promise<Stats24hResponse> => {
+    public readonly closeLimitSummary = async (params: {
+        amm: Amm;
+        trader: string;
+        trigger: number;
+        closePercent: number;
+    }): Promise<CloseMarketSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/stats24h`;
-            const { data } = await axios.get<{ data: Stats24hResponse }>(url);
+            const url = `${this._baseUrl}/closeLimitSummary`;
+            const { data } = await axios.get<{ data: CloseMarketSummaryResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -203,10 +177,10 @@ class NftperpApis {
         }
     };
 
-    public readonly fundingInfo = async (amm: Amm): Promise<FundingInfoResponse> => {
+    public readonly fundingRate = async (amm: Amm): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/fundingInfo`;
-            const { data } = await axios.get<{ data: FundingInfoResponse }>(url);
+            const url = `${this._baseUrl}/fundingRate`;
+            const { data } = await axios.get<{ data: string }>(url, { params: { amm } });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -217,8 +191,8 @@ class NftperpApis {
 
     public readonly freeCollateral = async (amm: Amm, trader: string): Promise<string> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/freeCollateral?trader=${trader}`;
-            const { data } = await axios.get<{ data: string }>(url);
+            const url = `${this._baseUrl}/freeCollateral`;
+            const { data } = await axios.get<{ data: string }>(url, { params: { amm, trader } });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -227,15 +201,13 @@ class NftperpApis {
         }
     };
 
-    public readonly marginChangeSummary = async (
-        amm: Amm,
-        params: {
-            trader: string;
-            newMargin: string;
-        }
-    ): Promise<MarginChangeSummaryResponse> => {
+    public readonly marginChangeSummary = async (params: {
+        amm: Amm;
+        trader: string;
+        margin: string;
+    }): Promise<MarginChangeSummaryResponse> => {
         try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/marginChangeSummary`;
+            const url = `${this._baseUrl}/marginChangeSummary`;
             const { data } = await axios.get<{ data: MarginChangeSummaryResponse }>(url, {
                 params,
             });
@@ -247,22 +219,12 @@ class NftperpApis {
         }
     };
 
-    public readonly totalPositionSize = async (amm: Amm): Promise<TotalPositionSizeResponse> => {
-        try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/totalPositionSize`;
-            const { data } = await axios.get<{ data: TotalPositionSizeResponse }>(url);
-            return data.data;
-            /* eslint-disable */
-        } catch (e: any) {
-            this._checkError(e);
-            /* eslint-enable */
-        }
-    };
-
     public readonly balances = async (trader: string): Promise<BalancesResponse> => {
         try {
-            const url = `${this._baseUrl}/balances?trader=${trader}`;
-            const { data } = await axios.get<{ data: BalancesResponse }>(url);
+            const url = `${this._baseUrl}/balances`;
+            const { data } = await axios.get<{ data: BalancesResponse }>(url, {
+                params: { trader },
+            });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -283,37 +245,13 @@ class NftperpApis {
         }
     };
 
-    public readonly markPriceTwap = async (amm: Amm): Promise<string> => {
-        try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/markPriceTwap`;
-            const { data } = await axios.get<{ data: MarkPriceTwapResponse }>(url);
-            return data.data.markPriceTwap;
-            /* eslint-disable */
-        } catch (e: any) {
-            this._checkError(e);
-            /* eslint-enable */
-        }
-    };
-
-    public readonly markPriceTwapInterval = async (amm: Amm): Promise<string> => {
-        try {
-            const url = `${this._baseUrl}/${amm.toLowerCase()}/markPriceTwapInterval`;
-            const { data } = await axios.get<{ data: MarkPriceTwapIntervalResponse }>(url);
-            return data.data.markPriceTwapInterval;
-            /* eslint-disable */
-        } catch (e: any) {
-            this._checkError(e);
-            /* eslint-enable */
-        }
-    };
-
-    public readonly trades = async (
+    public readonly marketTrades = async (
         params?: TradeApiParams
-    ): Promise<StatsApiResponse<ProcessedPositionChangedEvent>> => {
+    ): Promise<StatsApiResponse<MarketTrade>> => {
         try {
-            const url = `${this._baseUrl}/trades`;
+            const url = `${this._baseUrl}/marketTrades`;
             const { data } = await axios.get<{
-                data: StatsApiResponse<ProcessedPositionChangedEvent>;
+                data: StatsApiResponse<MarketTrade>;
             }>(url, { params });
             return data.data;
             /* eslint-disable */

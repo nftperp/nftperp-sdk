@@ -4,21 +4,17 @@ import abis from "./abis";
 import Big from "big.js";
 import io, { Socket } from "socket.io-client";
 import { getAmmAddress, getInstanceConfig } from "./utils/configDao";
-import { big, fromWei, stringify, toDecimalWei } from "./utils/format";
+import { big, fromWei, stringify, toWeiString } from "./utils/format";
 import {
     Amm,
     AmmInfoResponse,
     AmmInfosResponse,
-    CalcFeeResponse,
-    ClosePosTxSummaryResponse,
-    Decimal,
+    CloseMarketSummaryResponse,
     EVENT,
     FundingApiParams,
-    FundingInfoResponse,
     Instance,
     PositionResponse,
     Side,
-    StatsApiResponse,
     TradeApiParams,
     TransactionSummaryResponse,
 } from "./types";
@@ -40,7 +36,7 @@ export class SDK {
      * @param params.instance instance
      */
     constructor(params: { wallet: Wallet; instance?: Instance }) {
-        const { wallet, instance = Instance.BETA } = params;
+        const { wallet, instance = Instance.TRADING_COMP } = params;
         void this._validateWalletAndInstance(wallet, instance);
 
         const { ch, weth } = getInstanceConfig(instance);
@@ -67,22 +63,15 @@ export class SDK {
         params: {
             amm: Amm;
             side: Side;
-            amount: number;
+            margin: number;
             leverage: number;
             slippagePercent?: number;
         },
         overrides?: Overrides
     ): Promise<string> {
-        const { amm, side, amount, leverage, slippagePercent } = params;
+        const { amm, side, margin, leverage, slippagePercent } = params;
 
-        this._checkAmm(amm);
-        const trader = await this._getAddress();
-        const txSummary = await this._api.transactionSummary(amm, {
-            amount,
-            leverage,
-            side,
-            trader,
-        });
+        const txSummary = await this._api.openSummary({ amm, margin, leverage, side });
         await this._checkBalance(big(txSummary.totalCost));
         await this._checkAllowance(big(txSummary.totalCost));
         const baseAssetAmountLimit = this._getSlippageBaseAssetAmount(
@@ -94,9 +83,9 @@ export class SDK {
         return await this._openPosition(
             this._getAmmAddress(amm),
             side === Side.BUY ? 0 : 1,
-            toDecimalWei(amount),
-            toDecimalWei(leverage),
-            toDecimalWei(baseAssetAmountLimit),
+            toWeiString(margin),
+            toWeiString(leverage),
+            toWeiString(baseAssetAmountLimit),
             overrides
         );
     }
@@ -117,14 +106,13 @@ export class SDK {
     ): Promise<string> {
         const { amm, closePercent: _closePercent, slippagePercent } = params;
 
-        // validate params
-        this._checkAmm(amm);
         const closePercent = _closePercent ?? 100;
         const { size, trader, side } = await this.getPosition(amm);
         if (big(size).eq(0)) {
             throw new Error("no position found");
         }
-        const txSummary = await this._api.closePosTransactionSummary(amm, {
+        const txSummary = await this._api.closeMarketSummary({
+            amm,
             trader,
             closePercent,
         });
@@ -135,17 +123,10 @@ export class SDK {
             slippagePercent
         );
 
-        if (closePercent < 100) {
-            return await this._partialClose(
-                this._getAmmAddress(amm),
-                toDecimalWei(closePercent / 100),
-                toDecimalWei(quoteAssetAmountLimit),
-                overrides
-            );
-        }
         return await this._closePosition(
             this._getAmmAddress(amm),
-            toDecimalWei(quoteAssetAmountLimit),
+            toWeiString(big(size).mul(closePercent).div(100)),
+            toWeiString(quoteAssetAmountLimit),
             overrides
         );
     }
@@ -169,7 +150,7 @@ export class SDK {
         await this._checkBalance(big(amount));
         await this._checkAllowance(big(amount));
 
-        return await this._addMargin(this._getAmmAddress(amm), toDecimalWei(amount), overrides);
+        return await this._addMargin(this._getAmmAddress(amm), toWeiString(amount), overrides);
     }
 
     /**
@@ -193,7 +174,7 @@ export class SDK {
             throw new Error("remove amount beyond free collateral");
         }
 
-        return await this._removeMargin(this._getAmmAddress(amm), toDecimalWei(amount), overrides);
+        return await this._removeMargin(this._getAmmAddress(amm), toWeiString(amount), overrides);
     }
 
     /**
@@ -216,47 +197,25 @@ export class SDK {
     }
 
     /**
-     * calc fee
+     * get open pos summary
      * @param params.amm amm eg bayc
      * @param params.amount collateral amount
      * @param params.leverage leverage
      * @param params.side buy or sell
-     * @param params.open is opening position?
-     * @returns fee in `eth`
+     * @returns open pos summary
      */
-    public async calcFee(params: {
+    public async getOpenPosSummary(params: {
         amm: Amm;
-        amount: number;
-        leverage: number;
-        side: Side;
-        open: boolean;
-    }): Promise<CalcFeeResponse> {
-        const { amm, amount, leverage, side, open } = params;
-        const feeData = await this._api.calcFee(amm, { amount, leverage, side, open });
-        return feeData;
-    }
-
-    /**
-     * get open pos tx summary
-     * @param params.amm amm eg bayc
-     * @param params.amount collateral amount
-     * @param params.leverage leverage
-     * @param params.side buy or sell
-     * @returns open pos tx summary
-     */
-    public async getOpenPosTxSummary(params: {
-        amm: Amm;
-        amount: number;
+        margin: number;
         leverage: number;
         side: Side;
     }): Promise<TransactionSummaryResponse> {
-        const { amm, amount, leverage, side } = params;
-        const trader = await this._getAddress();
-        const txSummary = await this._api.transactionSummary(amm, {
-            amount,
+        const { amm, margin, leverage, side } = params;
+        const txSummary = await this._api.openSummary({
+            amm,
+            margin,
             leverage,
             side,
-            trader,
         });
         return txSummary;
     }
@@ -265,15 +224,16 @@ export class SDK {
      * get open pos tx summary
      * @param params.amm amm eg bayc
      * @param params.closePercent percent to close
-     * @returns close pos tx summary
+     * @returns close pos market summary
      */
-    public async getClosePosTxSummary(params: {
+    public async getCloseMarketSummary(params: {
         amm: Amm;
         closePercent?: number;
-    }): Promise<ClosePosTxSummaryResponse> {
+    }): Promise<CloseMarketSummaryResponse> {
         const { amm, closePercent } = params;
         const trader = await this._getAddress();
-        const txSummary = await this._api.closePosTransactionSummary(amm, {
+        const txSummary = await this._api.closeMarketSummary({
+            amm,
             trader,
             closePercent: closePercent ?? 100,
         });
@@ -328,23 +288,6 @@ export class SDK {
     }
 
     /**
-     * Get margin ratio. margin ratio = active margin / active notional
-     * @param params.amm amm eg bayc
-     * @returns margin ratio
-     */
-    public async getMarginRatio(amm: Amm, trader?: string): Promise<string> {
-        const { size, marginRatio } = await this._api.position(
-            amm,
-            trader ?? (await this._getAddress())
-        );
-        if (big(size).eq(0)) {
-            throw new Error("no position found");
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return marginRatio!;
-    }
-
-    /**
      * get max leverage for amm
      * @param amm amm eg bayc
      * @returns max leverage
@@ -379,29 +322,9 @@ export class SDK {
      * @param amm amm eg bayc
      * @returns funding info
      */
-    public async getFundingInfo(amm: Amm): Promise<FundingInfoResponse> {
-        const fundingInfo = await this._api.fundingInfo(amm);
-        return fundingInfo;
-    }
-
-    /**
-     * Get mark price twap
-     * @param amm amm eg bayc
-     * @returns mark price twap interval
-     */
-    public async getMarkPriceTwap(amm: Amm): Promise<string> {
-        const markPriceTwap = await this._api.markPriceTwap(amm);
-        return markPriceTwap;
-    }
-
-    /**
-     * Get mark price twap interval
-     * @param amm amm eg bayc
-     * @returns mark price twap interval
-     */
-    public async getMarkPriceTwapinterval(amm: Amm): Promise<string> {
-        const markPriceTwapInterval = await this._api.markPriceTwapInterval(amm);
-        return markPriceTwapInterval;
+    public async getFundingRate(amm: Amm): Promise<string> {
+        const fundingRate = await this._api.fundingRate(amm);
+        return fundingRate;
     }
 
     /**
@@ -446,7 +369,7 @@ export class SDK {
      * @returns trade info
      */
     public async getTrades(params?: TradeApiParams) {
-        const result = await this._api.trades(params);
+        const result = await this._api.marketTrades(params);
         return result;
     }
 
@@ -575,9 +498,9 @@ export class SDK {
     private async _openPosition(
         amm: string,
         side: number,
-        margin: Decimal,
-        leverage: Decimal,
-        baseAssetAmountLimit: Decimal,
+        margin: string,
+        leverage: string,
+        baseAssetAmountLimit: string,
         overrides: Overrides = {}
     ): Promise<string> {
         const tx = await this._ch.openPosition(
@@ -597,29 +520,11 @@ export class SDK {
      */
     private async _closePosition(
         amm: string,
-        quoteAssetAmountLimit: Decimal,
+        size: string,
+        quoteLimit: string,
         overrides: Overrides = {}
     ) {
-        const tx = await this._ch.closePosition(amm, quoteAssetAmountLimit, overrides);
-        return tx.hash;
-    }
-
-    /**
-     * partial close
-     * @returns hash
-     */
-    private async _partialClose(
-        amm: string,
-        partialCloseRatio: Decimal,
-        quoteAssetAmountLimit: Decimal,
-        overrides: Overrides = {}
-    ): Promise<string> {
-        const tx = await this._ch.partialClose(
-            amm,
-            partialCloseRatio,
-            quoteAssetAmountLimit,
-            overrides
-        );
+        const tx = await this._ch.closePosition(amm, size, quoteLimit, overrides);
         return tx.hash;
     }
 
@@ -627,7 +532,7 @@ export class SDK {
      * add margin
      * @returns hash
      */
-    private async _addMargin(amm: string, marginToAdd: Decimal, overrides: Overrides = {}) {
+    private async _addMargin(amm: string, marginToAdd: string, overrides: Overrides = {}) {
         const tx = await this._ch.addMargin(amm, marginToAdd, overrides);
         return tx.hash;
     }
@@ -638,7 +543,7 @@ export class SDK {
      */
     private async _removeMargin(
         amm: string,
-        marginToRemove: Decimal,
+        marginToRemove: string,
         overrides: Overrides = {}
     ): Promise<string> {
         const tx = await this._ch.removeMargin(amm, marginToRemove, overrides);
@@ -672,15 +577,5 @@ export class SDK {
         const addy = this._wallet.address ?? (await this._wallet.getAddress());
         if (!addy) throw new Error("signer has no address attached");
         return addy;
-    }
-
-    /**
-     * check whether amm supported for instance
-     */
-    private _checkAmm(amm: Amm) {
-        const amms = this.getSupportedAmms(this._instance);
-        if (!amms.includes(amm)) {
-            throw new Error(`amm: ${amm} not supported on instance: ${this._instance}`);
-        }
     }
 }

@@ -1,9 +1,8 @@
-import { Overrides } from "ethers";
 import { Amm, Side, Sort } from "./index";
 
 export type MarkPriceResponse = {
-    markPrice: string;
-    lastUpdatedTimestamp: string;
+    data: string;
+    status: string;
 };
 
 export type MarkPriceTwapResponse = {
@@ -17,26 +16,24 @@ export type MarkPriceTwapIntervalResponse = {
 };
 
 export type IndexPriceResponse = {
-    indexPrice: string;
-    lastUpdatedTimestamp: string;
+    data: string;
+    status: string;
 };
 
 export type PositionResponse = {
+    amm: Amm;
     trader: string;
-    ammName: Amm;
-    side?: Side;
     size: string;
-    entryPrice?: string;
-    markPrice?: string;
+    side?: Side;
+    notional?: string;
     margin?: string;
     leverage?: string;
-    notional?: string;
-    fundingPayment?: string;
-    unrealizedPnl?: string;
+    entryPrice?: string;
+    markPrice?: string;
     liquidationPrice?: string;
-    marginRatio?: string;
-    blockNumber?: string;
-    lastUpdatedTimestamp: string;
+    unrealizedPnl?: string;
+    fundingPayment?: string;
+    lastPremiumFraction?: string;
 };
 
 export type ReserveResponse = {
@@ -49,25 +46,17 @@ export type ReserveResponse = {
 export type AmmInfoResponse = {
     markPrice: string;
     indexPrice: string;
+    fundingRate: string;
     feeRatio: string;
-    fluctuationLimitRatio: string;
     initMarginRatio: string;
     maintenanceMarginRatio: string;
-    liquidationFeeRatio: string;
-    quoteAssetReserve: string;
-    baseAssetReserve: string;
-    openInterestNotionalCap: string;
-    maxHoldingCap: string;
-    openInterestNotional: string;
     netPositionSize: string;
     positionSizeLong: string;
     positionSizeShort: string;
-    fundingPeriod: string;
-    nextFundingTime: string;
-    previousFundingRateLong: string;
-    previousFundingRateShort: string;
-    nextEstimatedFundingRateLong: string;
-    nextEstimatedFundingRateShort: string;
+    openInterestNotional: string;
+    volume24h: string;
+    markPrice24h: string;
+    indexPrice24h: string;
 };
 
 export type AmmInfosResponse = {
@@ -86,41 +75,23 @@ export type TransactionSummaryResponse = {
     loweredFee: boolean;
 };
 
-export type CalcFeeResponse = {
-    fee: string;
-    feeRatio: string;
-    surgeFee: boolean;
-    loweredFee: boolean;
-};
-
 export type Stats24hResponse = {
     markPrice24h: string;
     indexPrice24h: string;
     volume24h: string;
 };
 
-export type FundingInfoResponse = {
-    fundingPeriod: string;
-    nextFundingTime: string;
-    previousFundingRateLong: string;
-    previousFundingRateShort: string;
-    nextEstimatedFundingRateLong: string;
-    nextEstimatedFundingRateShort: string;
-};
-
-export type ClosePosTxSummaryResponse = {
-    outputNotional: string;
+export type CloseMarketSummaryResponse = {
     outputMargin: string;
+    outputNotional: string;
     exitPrice: string;
     priceImpact: string;
+    unrealizedPnl: string;
     fee: string;
-    feeRatio: string;
-    pnl: string;
-    liquidationPrice: string;
 };
 
 export type MarginChangeSummaryResponse = {
-    newMargin: string;
+    newMargin: number;
     liquidationPrice: string;
 };
 
@@ -141,6 +112,24 @@ export interface TxInfo {
     transactionIndex: number;
     logIndex: number;
     timestamp: number;
+}
+
+export interface MarketTrade extends TxInfo {
+    amm: string;
+    ammName: string;
+    trader: string;
+    margin: string;
+    size: string;
+    exchangedQuote: string;
+    exchangedBase: string;
+    realizedPnl: string;
+    fundingPayment: string;
+    markPrice: string;
+    liquidationPenalty: string;
+    ifFee: string;
+    ammFee: string;
+    limitFee: string;
+    keeperFee: string;
 }
 
 export interface ProcessedPositionChangedEvent extends TxInfo {
@@ -165,10 +154,8 @@ export interface ProcessedFundingPaymentEvent extends TxInfo {
     ammName: string;
     markPrice: string;
     indexPrice: string;
-    premiumFractionLong: string;
-    premiumFractionShort: string;
-    fundingRateLong: string;
-    fundingRateShort: string;
+    premiumFraction: string;
+    fundingRate: string;
     insuranceFundPnl: string;
 }
 
@@ -183,7 +170,6 @@ export interface ProcessedMarginChangedEvent extends TxInfo {
 export type TradeApiParams = {
     amm?: Amm;
     trader?: string;
-    hash?: string;
     from?: number;
     to?: number;
     sort?: Sort;
@@ -204,8 +190,6 @@ export type FundingApiParams = {
 export interface StatsApiResponse<T> {
     page: number;
     pageSize: number;
-    totalPages: number;
-    totalCount: number;
     result: T[];
 }
 

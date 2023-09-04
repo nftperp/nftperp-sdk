@@ -5,11 +5,14 @@ export const config: Config = {
         apiBaseUrl: "https://api.nftperp.xyz",
         apiWsUrl: "https://api.nftperp.xyz",
         chainId: 42161,
-        ch: "0x90e4D0d5Dd569e4183548D0Dd86297a5187C8298",
-        iF: "0xb0e5edF0f7ACc6F2f126346Ade765d6438ddBaCd",
-        weth: "0x27D90ED3F3154BE96354Fb34025ae8879D859a48",
+        ch: "0x882B2578C4b8F1AE22eeF8A1692E8A5aF8c725BC",
+        iF: "0x7733007Fb8B56435f13c287Babf09696111a9D98",
+        weth: "0x4921769431F322099659b8Cf198526E586ae981E",
         amms: {
-            bayc: "0x69E80E6095b95F02439C022B777eaFD60BEC693C",
+            bayc: "0x59d691DC3913eE29D9182EF3EdFaa1B07c80a869",
+            milady: "0x6c792C96c026d32B0219C983d87C959082c9865c",
+            ppg: "0x91eBBfd56a98739280A1349F1Dbf2ea72e8453DC",
+            cdb: "0xc8a186248305dC8C3218988E5EB5CeC9BFBcD292",
         },
     },
 };

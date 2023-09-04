@@ -3,6 +3,9 @@ export * from "./api";
 // declare assets here
 export enum Amm {
     BAYC = "bayc",
+    MILADY = "milady",
+    PPG = "ppg",
+    CDB = "cdb",
 }
 
 export enum Side {
@@ -38,4 +41,14 @@ export type InstanceConfig = {
 
 export type Config = {
     [key in Instance]: InstanceConfig;
+};
+
+export type Order = {
+    id: string;
+    amm: Amm;
+    trader: string;
+    price: number;
+    size: number;
+    side: number;
+    timestamp: number;
 };

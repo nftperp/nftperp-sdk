@@ -36,6 +36,20 @@ export type PositionResponse = {
     lastPremiumFraction?: string;
 };
 
+export type MakerPositionResponse = {
+    amm: string;
+    trader: string;
+    liquidity: string;
+    margin?: string;
+    quote?: string;
+    base?: string;
+    fees?: string;
+    fundingPayment?: string;
+    quoteReserve: string;
+    baseReserve: string;
+    return30d: string;
+};
+
 export type ReserveResponse = {
     quoteAssetReserve: string;
     baseAssetReserve: string;

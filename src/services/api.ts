@@ -19,6 +19,8 @@ import {
     FundingApiParams,
     ProcessedFundingPaymentEvent,
     MarketTrade,
+    MakerPositionResponse,
+    Order,
 } from "../types";
 
 class RateLimitError extends Error {
@@ -93,6 +95,42 @@ class NftperpApis {
             const { data } = await axios.get<{ data: { [key in Amm]: PositionResponse } }>(url, {
                 params: { trader },
             });
+            return data.data;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly makerPosition = async (
+        amm: Amm,
+        trader: string
+    ): Promise<MakerPositionResponse> => {
+        try {
+            const url = `${this._baseUrl}/position/maker`;
+            const { data } = await axios.get<{ data: MakerPositionResponse }>(url, {
+                params: { amm, trader },
+            });
+            return data.data;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly makerPositions = async (
+        trader: string
+    ): Promise<{ [key in Amm]: MakerPositionResponse }> => {
+        try {
+            const url = `${this._baseUrl}/positions/maker`;
+            const { data } = await axios.get<{ data: { [key in Amm]: MakerPositionResponse } }>(
+                url,
+                {
+                    params: { trader },
+                }
+            );
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -268,6 +306,37 @@ class NftperpApis {
             const url = `${this._baseUrl}/fundings`;
             const { data } = await axios.get<{
                 data: StatsApiResponse<ProcessedFundingPaymentEvent>;
+            }>(url, { params });
+            return data.data;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly orders = async (params: { amm: Amm; trader: string }): Promise<Order[]> => {
+        try {
+            const url = `${this._baseUrl}/orders`;
+            const { data } = await axios.get<{
+                data: Order[];
+            }>(url, { params });
+            return data.data;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly triggerOrders = async (params: {
+        amm: Amm;
+        trader: string;
+    }): Promise<Order[]> => {
+        try {
+            const url = `${this._baseUrl}/orders/trigger`;
+            const { data } = await axios.get<{
+                data: Order[];
             }>(url, { params });
             return data.data;
             /* eslint-disable */

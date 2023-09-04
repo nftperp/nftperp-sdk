@@ -302,4 +302,68 @@ describe("NftperpApis", () => {
         expect(result).toBe("123.45");
         expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("/ethPrice"));
     });
+
+    it("should fetch maker position", async () => {
+        const mockMakerPositionResponse = {
+            amm: "bayc",
+            trader: "0x9510a5cBDe44227C00cf36FF5D2f8B6b72DDCd55",
+            liquidity: "0",
+            quoteReserve: "2.5",
+            baseReserve: "0.094071076342441284",
+            return30d: "0",
+        };
+        mockedAxios.get.mockResolvedValue({ data: { data: mockMakerPositionResponse } });
+
+        const result = await instance.makerPosition(amm, trader);
+
+        expect(result).toStrictEqual(mockMakerPositionResponse);
+        expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("/position/maker"), {
+            params: { amm, trader },
+        });
+    });
+
+    it("should fetch maker positions", async () => {
+        const mockMakerPositionsResponse = {
+            bayc: {
+                amm: "bayc",
+                trader: "0x9510a5cBDe44227C00cf36FF5D2f8B6b72DDCd55",
+                liquidity: "0",
+                quoteReserve: "0",
+                baseReserve: "0",
+                return30d: "0",
+            },
+            milady: {
+                amm: "milady",
+                trader: "0x9510a5cBDe44227C00cf36FF5D2f8B6b72DDCd55",
+                liquidity: "0",
+                quoteReserve: "0",
+                baseReserve: "0",
+                return30d: "0",
+            },
+            ppg: {
+                amm: "ppg",
+                trader: "0x9510a5cBDe44227C00cf36FF5D2f8B6b72DDCd55",
+                liquidity: "0",
+                quoteReserve: "0",
+                baseReserve: "0",
+                return30d: "0",
+            },
+            cdb: {
+                amm: "cdb",
+                trader: "0x9510a5cBDe44227C00cf36FF5D2f8B6b72DDCd55",
+                liquidity: "0",
+                quoteReserve: "0",
+                baseReserve: "0",
+                return30d: "0",
+            },
+        };
+        mockedAxios.get.mockResolvedValue({ data: { data: mockMakerPositionsResponse } });
+
+        const result = await instance.makerPositions(trader);
+
+        expect(result).toStrictEqual(mockMakerPositionsResponse);
+        expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("/positions/maker"), {
+            params: { trader },
+        });
+    });
 });

@@ -51,7 +51,7 @@ export class SDK {
     }
 
     /**
-     * Open a new position
+     * Create a market position
      * @param params params for opening position
      * @param params.amm the amm to trade eg bayc
      * @param params.side buy or sell
@@ -59,7 +59,7 @@ export class SDK {
      * @param params.leverage leverage
      * @returns tx hash
      */
-    public async openPosition(
+    public async createMarketOrder(
         params: {
             amm: Amm;
             side: Side;
@@ -80,7 +80,7 @@ export class SDK {
             slippagePercent
         );
 
-        return await this._openPosition(
+        return await this._openMarketOrder(
             this._getAmmAddress(amm),
             side === Side.BUY ? 0 : 1,
             toWeiString(margin),
@@ -88,6 +88,180 @@ export class SDK {
             toWeiString(baseAssetAmountLimit),
             overrides
         );
+    }
+
+    /**
+     * Create a limit order
+     * @param params params for opening position
+     * @param params.trader trader address
+     * @param params.amm the amm to trade eg bayc
+     * @param params.side buy or sell
+     * @param params.trigger trigger price
+     * @param params.quoteAmount quote amount
+     * @param params.leverage leverage
+     * @param params.reduceOnly reduce only
+     * @returns tx hash
+     */
+    public async createLimitOrder(
+        params: {
+            trader: string;
+            amm: string;
+            side: Side;
+            trigger: string;
+            quoteAmount: string;
+            leverage: string;
+            reduceOnly: boolean;
+        },
+        overrides?: Overrides
+    ): Promise<string> {
+        const { trader, amm, side, trigger, quoteAmount, leverage, reduceOnly } = params;
+        const tx = await this._ch.createLimitOrder(
+            {
+                trader,
+                amm,
+                side,
+                trigger,
+                quoteAmount,
+                leverage,
+                reduceOnly,
+            },
+            overrides
+        );
+        return tx.hash;
+    }
+
+    /**
+     * Update an existing limit order
+     *
+     * @param orderId order id
+     * @param params params for opening position
+     * @param params.trader trader address
+     * @param params.amm the amm to trade eg bayc
+     * @param params.side buy or sell
+     * @param params.trigger trigger price
+     * @param params.quoteAmount quote amount
+     * @param params.leverage leverage
+     * @param params.reduceOnly reduce only
+     * @returns tx hash
+     */
+    public async updateLimitOrder(
+        orderId: string,
+        params: {
+            trader: string;
+            amm: string;
+            side: Side;
+            trigger: string;
+            quoteAmount: string;
+            leverage: string;
+            reduceOnly: boolean;
+        },
+        overrides?: Overrides
+    ): Promise<string> {
+        const { trader, amm, side, trigger, quoteAmount, leverage, reduceOnly } = params;
+        const tx = await this._ch.updateLimitOrder(
+            orderId,
+            {
+                trader,
+                amm,
+                side,
+                trigger,
+                quoteAmount,
+                leverage,
+                reduceOnly,
+            },
+            overrides
+        );
+        return tx.hash;
+    }
+
+    /**
+     * Delete a limit order
+     * @param orderId order id
+     */
+    public async deleteLimitOrder(orderId: string, overrides?: Overrides): Promise<string> {
+        const tx = await this._ch.deleteLimitOrder(orderId, overrides);
+        return tx.hash;
+    }
+
+    /**
+     * Create a trigger order
+     * @param params params for opening position
+     * @param params.trader trader address
+     * @param params.amm the amm address
+     * @param params.trigger trigger price
+     * @param params.size size
+     * @param params.quoteLimit quote limit
+     * @param params.takeProfit take profit or stop loss
+     */
+    public async createTriggerOrder(
+        params: {
+            trader: string;
+            amm: string;
+            trigger: string;
+            size: string;
+            quoteLimit: string;
+            takeProfit: boolean;
+        },
+        overrides?: Overrides
+    ): Promise<string> {
+        const { trader, amm, trigger, size, quoteLimit, takeProfit } = params;
+        const tx = await this._ch.createTriggerOrder(
+            {
+                trader,
+                amm,
+                trigger,
+                size,
+                quoteLimit,
+                takeProfit,
+            },
+            overrides
+        );
+        return tx.hash;
+    }
+
+    /**
+     * Update an existing trigger order
+     *
+     */
+    public async updateTriggerOrder(
+        orderId: string,
+        amm: string,
+        params: {
+            trader: string;
+            amm: string;
+            trigger: string;
+            size: string;
+            quoteLimit: string;
+            takeProfit: boolean;
+        },
+        overrides?: Overrides
+    ): Promise<string> {
+        const { trader, trigger, size, quoteLimit, takeProfit } = params;
+        const tx = await this._ch.updateTriggerOrder(
+            orderId,
+            amm,
+            {
+                trader,
+                amm,
+                trigger,
+                size,
+                quoteLimit,
+                takeProfit,
+            },
+            overrides
+        );
+        return tx.hash;
+    }
+
+    /**
+     * Delete a trigger order
+     * @param orderId order id
+     * @param amm amm address
+     * @returns tx hash
+     */
+    public async deleteTriggerOrder(orderId: string, amm: string, overrides?: Overrides) {
+        const tx = await this._ch.deleteTriggerOrder(orderId, amm, overrides);
+        return tx.hash;
     }
 
     /**
@@ -492,10 +666,10 @@ export class SDK {
     }
 
     /**
-     * open position
+     * open market order
      * @returns hash
      */
-    private async _openPosition(
+    private async _openMarketOrder(
         amm: string,
         side: number,
         margin: string,

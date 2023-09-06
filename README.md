@@ -69,8 +69,9 @@ import { Amm, Side } from "@nftperp/sdk/types";
 const hash = await nftperp.createMarketOrder({
     amm: Amm.BAYC,
     side: Side.BUY,
-    margin: 1,
+    margin: 1, //in ETH
     leverage: 3,
+    slippagePercent: 1
 });
 ```
 
@@ -83,160 +84,34 @@ console.log(nftperp.getSupportedAmms(Instance.BETA));
 */
 ```
 
-#### Get postion
+#### Create a limit order
 
 ```ts
-const position = await nftperp.getPosition(Amm.BAYC);
-```
+import { Side } from "@nftperp/sdk/types";
 
-#### Close position
-
-```ts
-const hash = await nftperp.closePosition({
-    amm: Amm.BAYC,
-});
-```
-
-#### Estimate fee on position
-
-```ts
-const feeInfo = await nftperp.calcFee({
-    amm: Amm.BAYC,
-    amount: 1,
-    leverage: 1,
+const hash = await nftperp.createLimitOrder({
+    trader: 0xaddress,
+    amm: 'bayc',
     side: Side.BUY,
-    open: true, // true for opening pos, false for closing
-});
-```
-
-#### Calculate open position transaction summary
-
-```ts
-const txSummary = await nftperp.getOpenPosTxSummary({
-    amm: Amm.BAYC,
-    amount: 1,
+    trigger: 0, //only needed for trigger orders
+    quoteAmount: 3, //bid amount in ETH
     leverage: 1,
+    reduceOnly: false
+    });
+```
+
+#### Update a limit order
+
+```ts
+import { Side } from "@nftperp/sdk/types";
+
+const hash = await nftperp.createLimitOrder(orderId, {
+    trader: 0xaddress,
+    amm: 'bayc',
     side: Side.BUY,
-});
-```
-
-#### Calculate close position transaction summary
-
-```ts
-const txSummary = await nftperp.getClosePosTxSummary({
-    amm: Amm.BAYC,
-    closePercent: 100,
-});
-```
-
-#### Get mark price
-
-```ts
-const markPrice = await nftperp.getMarkPrice(Amm.BAYC);
-```
-
-#### Get index price
-
-```ts
-const indexPrice = await nftperp.getIndexPrice(Amm.BAYC);
-```
-
-#### Get funding info
-
-```ts
-const fundingInfo = await nftperp.getFundingInfo(Amm.BAYC);
-```
-
-#### Get trades
-
-```ts
-await nftperp.getTrades({ amm: Amm.BAYC, trader: "<trader-address>" });
-await nftperp.getTrades({ from: 1680307200, to: 1682899200, sort: Sort.ASC });
-await nftperp.getTrades({ hash: "<transaction-hash>" });
-
-/**
-{
-    "page": 1,
-    "pageSize": 100,
-    "totalPages": 838,
-    "totalCount": 83705,
-    "result": [
-        {
-            "trader": ...,
-            "amm": ...,
-            "margin": ...,
-            "exchangedPositionNotional": ...,
-            "exchangedPositionSize": ...,
-            "fee": ...,
-            ...
-        },
-        ...
-    ]
-}
-*/
-```
-
-_note_: _this method is paginated, so use `page` to loop through!_
-
-#### Get fundings
-
-```ts
-await nftperp.getFundings({ amm: Amm.BAYC });
-await nftperp.getFundings({ from: 1680307200, to: 1682899200, sort: Sort.ASC });
-await nftperp.getFundings({ hash: "<transaction-hash>" });
-
-/**
-{
-    "page": 1,
-    "pageSize": 100,
-    "totalPages": 838,
-    "totalCount": 83705,
-    "result": [
-        {
-            "amm": ...,
-            "markPrice": ...,
-            "indexPrice": ...,
-            "fundingRateLong": ...,
-            "fundingRateShort": ...,
-            ...
-        },
-        ...
-    ]
-}
-*/
-```
-
-_note_: _this method is paginated, so use `page` to loop through!_
-
-#### Streamer
-
-Stream realtime events! directly consume parsed event data!
-
-```ts
-import { EVENT } from "@nftperp/sdk/types";
-
-nftperp.on(EVENT.TRADE, (data) => console.log(data));
-/**
-{
-    "trader": ...,
-    "amm": ...,
-    "margin": ...,
-    "exchangedPositionNotional": ...,
-    "exchangedPositionSize": ...,
-    "fee": ...,
-    ...
-}
-*/
-
-nftperp.on(EVENT.FUNDING, (data) => console.log(data));
-/**
-{
-    "amm": ...,
-    "markPrice": ...,
-    "indexPrice": ...,
-    "fundingRateLong": ...,
-    "fundingRateShort": ...,
-    ...
-}
-*/
+    trigger: 0, //only needed for trigger orders
+    quoteAmount: 3, //bid amount in ETH
+    leverage: 1,
+    reduceOnly: false
+    });
 ```

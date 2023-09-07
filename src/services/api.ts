@@ -21,6 +21,7 @@ import {
     MarketTrade,
     MakerPositionResponse,
     Order,
+    OrderBook,
 } from "../types";
 
 class RateLimitError extends Error {
@@ -337,6 +338,20 @@ class NftperpApis {
             const url = `${this._baseUrl}/orders/trigger`;
             const { data } = await axios.get<{
                 data: Order[];
+            }>(url, { params });
+            return data.data;
+            /* eslint-disable */
+        } catch (e: any) {
+            this._checkError(e);
+            /* eslint-enable */
+        }
+    };
+
+    public readonly orderbook = async (params: { amm: Amm }): Promise<OrderBook> => {
+        try {
+            const url = `${this._baseUrl}/orderbook`;
+            const { data } = await axios.get<{
+                data: OrderBook;
             }>(url, { params });
             return data.data;
             /* eslint-disable */

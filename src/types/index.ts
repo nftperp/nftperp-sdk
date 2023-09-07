@@ -52,3 +52,17 @@ export type Order = {
     side: number;
     timestamp: number;
 };
+
+export type Level = {
+    price: number;
+    size: number;
+    side: number;
+};
+
+export type OrderBook = {
+    asks: number;
+    bids: number;
+    levels: Level[];
+    amm: "bayc";
+    markPrice: number;
+};

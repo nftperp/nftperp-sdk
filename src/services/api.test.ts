@@ -366,4 +366,67 @@ describe("NftperpApis", () => {
             params: { trader },
         });
     });
+
+    it("should fetch orderbook", async () => {
+        const mockOrderbookResponse = {
+            amm: "bayc",
+            markPrice: 26.26098425835745,
+            asks: 1.1668797863197071,
+            bids: 20.180250609760755,
+            levels: [
+                {
+                    price: 28.85,
+                    size: 0.020797227036395145,
+                    side: 1,
+                },
+                {
+                    price: 28.57,
+                    size: 0.04935246762338116,
+                    side: 1,
+                },
+                {
+                    price: 28.3,
+                    size: 0.11837455830388692,
+                    side: 1,
+                },
+                {
+                    price: 28.02,
+                    size: 0.2844396859386153,
+                    side: 1,
+                },
+                {
+                    price: 27.75,
+                    size: 0.683963963963964,
+                    side: 1,
+                },
+                {
+                    price: 27.38,
+                    size: 0.009951883453464629,
+                    side: 1,
+                },
+                {
+                    price: 26,
+                    size: 0.1449519286125778,
+                    side: 0,
+                },
+                {
+                    price: 25.78,
+                    size: 0.03529868114817688,
+                    side: 0,
+                },
+                {
+                    price: 0.01,
+                    size: 20,
+                    side: 0,
+                },
+            ],
+        };
+        mockedAxios.get.mockResolvedValue({ data: { data: mockOrderbookResponse } });
+        const result = await instance.orderbook({ amm: Amm.BAYC });
+
+        expect(result).toStrictEqual(mockOrderbookResponse);
+        expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("/orderbook"), {
+            params: { amm },
+        });
+    });
 });

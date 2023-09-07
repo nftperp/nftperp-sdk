@@ -1,4 +1,4 @@
-import { constants, Contract, Overrides, Wallet } from "ethers";
+import { constants, Contract, ContractTransaction, Overrides, Wallet } from "ethers";
 import { ClearingHouse, ERC20 } from "./typechain-types";
 import abis from "./abis";
 import Big from "big.js";
@@ -57,7 +57,7 @@ export class SDK {
      * @param params.side buy or sell
      * @param params.amount margin
      * @param params.leverage leverage
-     * @returns tx hash
+     * @returns tx
      */
     public async createMarketOrder(
         params: {
@@ -68,7 +68,7 @@ export class SDK {
             slippagePercent?: number;
         },
         overrides?: Overrides
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const { amm, side, margin, leverage, slippagePercent } = params;
 
         const txSummary = await this._api.openSummary({ amm, margin, leverage, side });
@@ -100,7 +100,7 @@ export class SDK {
      * @param params.quoteAmount quote amount
      * @param params.leverage leverage
      * @param params.reduceOnly reduce only
-     * @returns tx hash
+     * @returns tx
      */
     public async createLimitOrder(
         params: {
@@ -113,7 +113,7 @@ export class SDK {
             reduceOnly: boolean;
         },
         overrides?: Overrides
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const { trader, amm, side, trigger, quoteAmount, leverage, reduceOnly } = params;
         const tx = await this._ch.createLimitOrder(
             {
@@ -127,7 +127,7 @@ export class SDK {
             },
             overrides
         );
-        return tx.hash;
+        return tx;
     }
 
     /**
@@ -142,7 +142,7 @@ export class SDK {
      * @param params.quoteAmount quote amount
      * @param params.leverage leverage
      * @param params.reduceOnly reduce only
-     * @returns tx hash
+     * @returns tx
      */
     public async updateLimitOrder(
         orderId: string,
@@ -156,7 +156,7 @@ export class SDK {
             reduceOnly: boolean;
         },
         overrides?: Overrides
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const { trader, amm, side, trigger, quoteAmount, leverage, reduceOnly } = params;
         const tx = await this._ch.updateLimitOrder(
             orderId,
@@ -171,16 +171,20 @@ export class SDK {
             },
             overrides
         );
-        return tx.hash;
+        return tx;
     }
 
     /**
      * Delete a limit order
      * @param orderId order id
+     * @returns tx
      */
-    public async deleteLimitOrder(orderId: string, overrides?: Overrides): Promise<string> {
+    public async deleteLimitOrder(
+        orderId: string,
+        overrides?: Overrides
+    ): Promise<ContractTransaction> {
         const tx = await this._ch.deleteLimitOrder(orderId, overrides);
-        return tx.hash;
+        return tx;
     }
 
     /**
@@ -192,6 +196,7 @@ export class SDK {
      * @param params.size size
      * @param params.quoteLimit quote limit
      * @param params.takeProfit take profit or stop loss
+     * @returns tx
      */
     public async createTriggerOrder(
         params: {
@@ -203,7 +208,7 @@ export class SDK {
             takeProfit: boolean;
         },
         overrides?: Overrides
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const { trader, amm, trigger, size, quoteLimit, takeProfit } = params;
         const tx = await this._ch.createTriggerOrder(
             {
@@ -216,12 +221,20 @@ export class SDK {
             },
             overrides
         );
-        return tx.hash;
+        return tx;
     }
 
     /**
      * Update an existing trigger order
-     *
+     * @param orderId order id
+     * @param params params for trigger order
+     * @param params.trader trader address
+     * @param params.amm the amm address
+     * @param params.trigger trigger price
+     * @param params.size size
+     * @param params.quoteLimit quote limit
+     * @param params.takeProfit take profit or stop loss
+     * @returns tx
      */
     public async updateTriggerOrder(
         orderId: string,
@@ -235,7 +248,7 @@ export class SDK {
             takeProfit: boolean;
         },
         overrides?: Overrides
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const { trader, trigger, size, quoteLimit, takeProfit } = params;
         const tx = await this._ch.updateTriggerOrder(
             orderId,
@@ -250,25 +263,29 @@ export class SDK {
             },
             overrides
         );
-        return tx.hash;
+        return tx;
     }
 
     /**
      * Delete a trigger order
      * @param orderId order id
      * @param amm amm address
-     * @returns tx hash
+     * @returns tx
      */
-    public async deleteTriggerOrder(orderId: string, amm: string, overrides?: Overrides) {
+    public async deleteTriggerOrder(
+        orderId: string,
+        amm: string,
+        overrides?: Overrides
+    ): Promise<ContractTransaction> {
         const tx = await this._ch.deleteTriggerOrder(orderId, amm, overrides);
-        return tx.hash;
+        return tx;
     }
 
     /**
      * Close position
      * @param params params for closing position
      * @param params.amm amm eg bayc
-     * @returns tx hash
+     * @returns tx
      */
     public async closePosition(
         params: {
@@ -277,7 +294,7 @@ export class SDK {
             slippagePercent?: number;
         },
         overrides?: Overrides
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const { amm, closePercent: _closePercent, slippagePercent } = params;
 
         const closePercent = _closePercent ?? 100;
@@ -310,12 +327,12 @@ export class SDK {
      * @param params params for adding margin
      * @param params.amm amm eg bayc
      * @param params.amount margin to add
-     * @returns tx hash
+     * @returns tx
      */
     public async addMargin(
         params: { amm: Amm; amount: number },
         overrides?: Overrides
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const { amm, amount } = params;
         const { size } = await this.getPosition(amm);
         if (big(size).eq(0)) {
@@ -332,12 +349,12 @@ export class SDK {
      * @param params params for removing margin
      * @param params.amm amm eg bayc
      * @param params.amount margin to remove
-     * @returns
+     * @returns tx
      */
     public async removeMargin(
         params: { amm: Amm; amount: number },
         overrides?: Overrides
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const { amm, amount } = params;
         const { size, trader } = await this.getPosition(amm);
         if (big(size).eq(0)) {
@@ -667,7 +684,7 @@ export class SDK {
 
     /**
      * open market order
-     * @returns hash
+     * @returns tx
      */
     private async _openMarketOrder(
         amm: string,
@@ -676,7 +693,7 @@ export class SDK {
         leverage: string,
         baseAssetAmountLimit: string,
         overrides: Overrides = {}
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const tx = await this._ch.openPosition(
             amm,
             side,
@@ -685,7 +702,7 @@ export class SDK {
             baseAssetAmountLimit,
             overrides
         );
-        return tx.hash;
+        return tx;
     }
 
     /**
@@ -699,29 +716,33 @@ export class SDK {
         overrides: Overrides = {}
     ) {
         const tx = await this._ch.closePosition(amm, size, quoteLimit, overrides);
-        return tx.hash;
+        return tx;
     }
 
     /**
      * add margin
-     * @returns hash
+     * @returns tx
      */
-    private async _addMargin(amm: string, marginToAdd: string, overrides: Overrides = {}) {
+    private async _addMargin(
+        amm: string,
+        marginToAdd: string,
+        overrides: Overrides = {}
+    ): Promise<ContractTransaction> {
         const tx = await this._ch.addMargin(amm, marginToAdd, overrides);
-        return tx.hash;
+        return tx;
     }
 
     /**
      * remove margin
-     * @returns hash
+     * @returns tx
      */
     private async _removeMargin(
         amm: string,
         marginToRemove: string,
         overrides: Overrides = {}
-    ): Promise<string> {
+    ): Promise<ContractTransaction> {
         const tx = await this._ch.removeMargin(amm, marginToRemove, overrides);
-        return tx.hash;
+        return tx;
     }
 
     /**

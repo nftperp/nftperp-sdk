@@ -111,7 +111,7 @@ const hash = await nftperp.closePosition({
 #### Calculate open position transaction summary
 
 ```ts
-const summary = await nftperp.getOpenPosTxSummary({
+const summary = await nftperp.getOpenSummary({
     amm: Amm.BAYC,
     amount: 1,
     leverage: 1,
@@ -122,7 +122,7 @@ const summary = await nftperp.getOpenPosTxSummary({
 #### Calculate close position transaction summary
 
 ```ts
-const summary = await nftperp.getClosePosTxSummary({ amm: Amm.BAYC });
+const summary = await nftperp.getCloseMarketSummary({ amm: Amm.BAYC });
 ```
 
 #### Get mark price

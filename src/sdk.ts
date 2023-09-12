@@ -353,7 +353,7 @@ export class SDK {
      * @param params.side buy or sell
      * @returns open pos summary
      */
-    public async getOpenPosSummary(params: {
+    public async getOpenSummary(params: {
         amm: types.Amm;
         side: types.Side;
         margin: number;

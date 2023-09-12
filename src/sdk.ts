@@ -49,7 +49,7 @@ export class SDK {
             leverage: number;
             slippagePercent?: number;
         },
-        overrides?: ethers.ethers.Overrides
+        overrides: ethers.Overrides = {}
     ): Promise<ethers.ethers.ContractTransaction> {
         const { amm, side, margin, leverage, slippagePercent } = params;
 
@@ -83,12 +83,12 @@ export class SDK {
         params: {
             amm: types.Amm;
             side: types.Side;
-            price: string;
-            margin: string;
-            leverage: string;
+            price: number;
+            margin: number;
+            leverage: number;
             reduceOnly?: boolean;
         },
-        overrides?: ethers.ethers.Overrides
+        overrides: ethers.Overrides = {}
     ): Promise<ethers.ethers.ContractTransaction> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
@@ -97,7 +97,7 @@ export class SDK {
             {
                 trader,
                 amm: this._getAmmAddress(amm),
-                side,
+                side: side === types.Side.BUY ? 0 : 1,
                 trigger: utils.toWeiStr(price),
                 quoteAmount: utils.toWeiStr(margin),
                 leverage: utils.toWeiStr(leverage),
@@ -119,11 +119,11 @@ export class SDK {
     public async openTriggerOrder(
         params: {
             amm: types.Amm;
-            price: string;
-            size: string;
+            price: number;
+            size: number;
             type: types.TriggerType;
         },
-        overrides?: ethers.Overrides
+        overrides: ethers.Overrides = {}
     ): Promise<ethers.ContractTransaction> {
         const { amm, price, size, type } = params;
 
@@ -153,7 +153,7 @@ export class SDK {
             closePercent?: number;
             slippagePercent?: number;
         },
-        overrides?: ethers.Overrides
+        overrides: ethers.Overrides = {}
     ): Promise<ethers.ContractTransaction> {
         const { amm, closePercent: _closePercent, slippagePercent } = params;
 
@@ -199,12 +199,12 @@ export class SDK {
         params: {
             amm: types.Amm;
             side: types.Side;
-            price: string;
-            margin: string;
-            leverage: string;
+            price: number;
+            margin: number;
+            leverage: number;
             reduceOnly?: boolean;
         },
-        overrides?: ethers.Overrides
+        overrides: ethers.Overrides = {}
     ): Promise<ethers.ContractTransaction> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
@@ -214,7 +214,7 @@ export class SDK {
             {
                 trader,
                 amm: this._getAmmAddress(amm),
-                side,
+                side: side === types.Side.BUY ? 0 : 1,
                 trigger: utils.toWeiStr(price),
                 quoteAmount: utils.toWeiStr(margin),
                 leverage: utils.toWeiStr(leverage),
@@ -229,7 +229,7 @@ export class SDK {
      * @param id order id
      * @returns tx
      */
-    public async deleteLimitOrder(id: string, overrides?: ethers.Overrides): Promise<ethers.ContractTransaction> {
+    public async deleteLimitOrder(id: number, overrides: ethers.Overrides = {}): Promise<ethers.ContractTransaction> {
         return this._ch.deleteLimitOrder(id, overrides);
     }
 

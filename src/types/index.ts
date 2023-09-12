@@ -50,7 +50,7 @@ export type Config = {
 };
 
 export type Order = {
-    id: string;
+    id: number;
     amm: Amm;
     trader: string;
     price: number;

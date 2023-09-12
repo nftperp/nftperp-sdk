@@ -9,8 +9,7 @@
         "start": "node dist/sdk.js",
         "prepare": "husky install",
         "typechain": "typechain --target ethers-v5 --out-dir src/typechain-types 'src/abis/**/*.json'",
-        "postinstall": "npm run typechain",
-        "test": "jest"
+        "postinstall": "npm run typechain"
     },
     "homepage": "https://github.com/nftperp/nftperp-sdk/#readme",
     "repository": {
@@ -44,10 +43,8 @@
         "eslint": "^8.21.0",
         "eslint-config-prettier": "^8.5.0",
         "husky": "^8.0.1",
-        "jest": "^29.6.2",
         "lint-staged": "^13.0.3",
         "prettier": "^2.7.1",
-        "ts-jest": "^29.1.1",
         "typechain": "^8.1.0",
         "typescript": "^4.7.4"
     }

@@ -1,4 +1,4 @@
-import { Amm, Side, Sort } from "./index";
+import * as types from "../types";
 
 export type MarkPriceResponse = {
     data: string;
@@ -21,10 +21,10 @@ export type IndexPriceResponse = {
 };
 
 export type PositionResponse = {
-    amm: Amm;
+    amm: types.Amm;
     trader: string;
     size: string;
-    side?: Side;
+    side?: types.Side;
     notional?: string;
     margin?: string;
     leverage?: string;
@@ -74,10 +74,10 @@ export type AmmInfoResponse = {
 };
 
 export type AmmInfosResponse = {
-    [key in Amm]: AmmInfoResponse;
+    [key in types.Amm]: AmmInfoResponse;
 };
 
-export type TransactionSummaryResponse = {
+export type OpenSummaryResponse = {
     outputSize: string;
     entryPrice: string;
     priceImpact: string;
@@ -95,7 +95,7 @@ export type Stats24hResponse = {
     volume24h: string;
 };
 
-export type CloseMarketSummaryResponse = {
+export type CloseSummaryResponse = {
     outputMargin: string;
     outputNotional: string;
     exitPrice: string;
@@ -182,21 +182,21 @@ export interface ProcessedMarginChangedEvent extends TxInfo {
 }
 
 export type TradeApiParams = {
-    amm?: Amm;
+    amm?: types.Amm;
     trader?: string;
     from?: number;
     to?: number;
-    sort?: Sort;
+    sort?: types.Sort;
     page?: number;
     pageSize?: number;
 };
 
 export type FundingApiParams = {
-    amm?: Amm;
+    amm?: types.Amm;
     hash?: string;
     from?: number;
     to?: number;
-    sort?: Sort;
+    sort?: types.Sort;
     page?: number;
     pageSize?: number;
 };

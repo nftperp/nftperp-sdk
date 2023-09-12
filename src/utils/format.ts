@@ -13,10 +13,18 @@ export const toWei = (value: string | number | BigNumber | Big, decimals = 18): 
     return big(value).mul(Math.pow(10, decimals)).round(0, 0); // wei cannot be in decimal
 };
 
-export const toWeiString = (value: string | number | BigNumber | Big, decimals = 18): string => {
-    return toWei(value, decimals).toFixed();
+export const fromWeiStr = (value: string | number | BigNumber | Big, decimals = 18): string => {
+    return stringify(fromWei(value, decimals));
+};
+
+export const toWeiStr = (value: string | number | BigNumber | Big, decimals = 18): string => {
+    return stringify(toWei(value, decimals));
 };
 
 export const stringify = (value: string | number | BigNumber | Big): string => {
     return big(value).toFixed();
+};
+
+export const numerify = (value: string | number | BigNumber | Big): number => {
+    return +big(value).toFixed();
 };

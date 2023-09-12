@@ -1,4 +1,5 @@
 export * from "./api";
+export * from "../typechain-types";
 
 // declare assets here
 export enum Amm {
@@ -14,17 +15,22 @@ export enum Side {
 }
 
 export enum Instance {
-    TRADING_COMP = "TRADING_COMP",
+    PAPER_TRADING = "PAPER_TRADING",
 }
 
 export enum Sort {
-    ASC = "1",
-    DESC = "-1",
+    ASC = "asc",
+    DESC = "desc",
 }
 
 export enum EVENT {
     TRADE = "TRADE",
     FUNDING = "FUNDING",
+}
+
+export enum TriggerType {
+    STOP_LOSS = "STOP_LOSS",
+    TAKE_PROFIT = "TAKE_PROFIT",
 }
 
 export type InstanceConfig = {
@@ -63,6 +69,6 @@ export type OrderBook = {
     asks: number;
     bids: number;
     levels: Level[];
-    amm: "bayc";
+    amm: Lowercase<Amm>;
     markPrice: number;
 };

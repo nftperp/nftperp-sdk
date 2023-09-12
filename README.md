@@ -21,7 +21,6 @@ For any queries, join our discord [invite link](https://discord.gg/J5vUUcTE6F)
 npm i @nftperp/sdk
 ```
 
-
 **NOTE:** Make sure you have `ethers@5` installed. `ethers v6`, which will create errors when initialising the SDK
 
 ```sh
@@ -43,22 +42,7 @@ recommended using one from infura/alchemy
 */
 const provider = new ethers.providers.JsonRpcProvider("<your-rpc-url>");
 const wallet = new ethers.Wallet("<your-private-key>", provider);
-const nftperp = new SDK({ wallet, instance: Instance.TRADING_COMP });
-```
-
-If an error of the following occurs: `SyntaxError: Cannot use import statement outside a module`, add in the following to your `package.json` file
-
-```json
-"type": "module"
-```
-
-If an error of the following occurs: `Directory import '..\@nftperp\sdk\types' is not supported resolving ES modules`, do the following:
-
-```ts
-// REPLACE
-import { Instance } from "@nftperp/sdk/types";
-// WITH
-import { Instance } from "@nftperp/sdk/types/index.js";
+const nftperp = new SDK({ wallet, instance: Instance.PAPER_TRADING });
 ```
 
 #### Create a market order
@@ -66,19 +50,18 @@ import { Instance } from "@nftperp/sdk/types/index.js";
 ```ts
 import { Amm, Side } from "@nftperp/sdk/types";
 
-const hash = await nftperp.createMarketOrder({
+const tx = await nftperp.createMarketOrder({
     amm: Amm.BAYC,
     side: Side.BUY,
-    margin: 1, //in ETH
+    margin: 0.1, // in eth
     leverage: 3,
-    slippagePercent: 1
 });
 ```
 
 _note_: _to get a list of supported amms do:_
 
 ```ts
-console.log(nftperp.getSupportedAmms(Instance.BETA));
+console.log(nftperp.getSupportedAmms(Instance.PAPER_TRADING));
 /**
 [ 'BAYC', 'PUNKS', '...' ]
 */
@@ -89,29 +72,89 @@ console.log(nftperp.getSupportedAmms(Instance.BETA));
 ```ts
 import { Side } from "@nftperp/sdk/types";
 
-const hash = await nftperp.createLimitOrder({
-    trader: 0xaddress,
-    amm: 'bayc',
-    side: Side.BUY,
-    trigger: 0, //only needed for trigger orders
-    quoteAmount: 3, //bid amount in ETH
+const tx = await nftperp.createLimitOrder({
+    amm: AMM.BAYC,
+    side: Side.SELL,
+    price: 30,
+    margin: 0.1,
     leverage: 1,
-    reduceOnly: false
-    });
+});
 ```
 
-#### Update a limit order
+#### Get postion
 
 ```ts
-import { Side } from "@nftperp/sdk/types";
+const position = await nftperp.getPosition(Amm.BAYC);
+```
 
-const hash = await nftperp.createLimitOrder(orderId, {
-    trader: 0xaddress,
-    amm: 'bayc',
-    side: Side.BUY,
-    trigger: 0, //only needed for trigger orders
-    quoteAmount: 3, //bid amount in ETH
+#### Create a trigger order (Stop loss/Take profit)
+
+```ts
+import { Side, TriggerType } from "@nftperp/sdk/types";
+
+const hash = await nftperp.createTriggerOrder({
+    amm: Amm.BAYC,
+    price: 20,
+    size: 0.1 // in BAYC
+    type: TriggerType.TAKE_PROFIT
+});
+```
+
+#### Close position
+
+```ts
+const hash = await nftperp.closePosition({
+    amm: Amm.BAYC,
+});
+```
+
+#### Calculate open position transaction summary
+
+```ts
+const summary = await nftperp.getOpenPosTxSummary({
+    amm: Amm.BAYC,
+    amount: 1,
     leverage: 1,
-    reduceOnly: false
-    });
+    side: Side.BUY,
+});
+```
+
+#### Calculate close position transaction summary
+
+```ts
+const summary = await nftperp.getClosePosTxSummary({ amm: Amm.BAYC });
+```
+
+#### Get mark price
+
+```ts
+const markPrice = await nftperp.getMarkPrice(Amm.BAYC);
+```
+
+#### Get index price
+
+```ts
+const indexPrice = await nftperp.getIndexPrice(Amm.BAYC);
+```
+
+#### Get funding info
+
+```ts
+const fundingInfo = await nftperp.getFundingInfo(Amm.BAYC);
+```
+
+#### Get historical trades
+
+```ts
+await nftperp.getTrades({ amm: Amm.BAYC, trader: "<trader-address>" });
+await nftperp.getTrades({ from: 1680307200, to: 1682899200, sort: Sort.ASC });
+await nftperp.getTrades({ hash: "<transaction-hash>" });
+```
+
+#### Get historical fundings
+
+```ts
+await nftperp.getFundings({ amm: Amm.BAYC });
+await nftperp.getFundings({ from: 1680307200, to: 1682899200, sort: Sort.ASC });
+await nftperp.getFundings({ hash: "<transaction-hash>" });
 ```

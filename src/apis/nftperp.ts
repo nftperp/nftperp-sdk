@@ -1,55 +1,18 @@
-import axios, { AxiosHeaders } from "axios";
-import { config } from "../config";
-import {
-    AmmInfoResponse,
-    IndexPriceResponse,
-    MarkPriceResponse,
-    PositionResponse,
-    TransactionSummaryResponse as OpenSummaryResponse,
-    Side,
-    CloseMarketSummaryResponse,
-    MarginChangeSummaryResponse,
-    BalancesResponse,
-    Amm,
-    Instance,
-    RateLimitHeaders,
-    AmmInfosResponse,
-    TradeApiParams,
-    StatsApiResponse,
-    FundingApiParams,
-    ProcessedFundingPaymentEvent,
-    MarketTrade,
-    MakerPositionResponse,
-    Order,
-    OrderBook,
-} from "../types";
+import axios from "axios";
+import * as config from "../config";
+import * as types from "../types";
 
-class RateLimitError extends Error {
-    public readonly ratelimit: number;
-    public readonly ratelimitRemaining: number;
-    public readonly ratelimitReset: number;
-    public readonly retryAfter: number;
-
-    constructor(message: string, rlHeaders: RateLimitHeaders) {
-        super(message);
-        this.ratelimit = rlHeaders.ratelimit;
-        this.ratelimitRemaining = rlHeaders.ratelimitRemaining;
-        this.ratelimitReset = rlHeaders.ratelimitReset;
-        this.retryAfter = rlHeaders.retryAfter;
-    }
-}
-
-class NftperpApis {
+export class NftperpApis {
     private readonly _baseUrl;
 
-    constructor(instance: Instance) {
-        this._baseUrl = config[instance].apiBaseUrl.replace(/$\//, ""); // trim trailing slash
+    constructor(instance: types.Instance) {
+        this._baseUrl = config.config[instance].apiBaseUrl.replace(/$\//, ""); // trim trailing slash
     }
 
-    public readonly markPrice = async (amm: Amm): Promise<string> => {
+    public readonly markPrice = async (amm: types.Amm): Promise<string> => {
         try {
             const url = `${this._baseUrl}/markPrice`;
-            const { data } = await axios.get<MarkPriceResponse>(url, {
+            const { data } = await axios.get<types.MarkPriceResponse>(url, {
                 params: { amm },
             });
             return data.data;
@@ -60,10 +23,10 @@ class NftperpApis {
         }
     };
 
-    public readonly indexPrice = async (amm: Amm): Promise<string> => {
+    public readonly indexPrice = async (amm: types.Amm): Promise<string> => {
         try {
             const url = `${this._baseUrl}/indexPrice`;
-            const { data } = await axios.get<IndexPriceResponse>(url, {
+            const { data } = await axios.get<types.IndexPriceResponse>(url, {
                 params: { amm },
             });
             return data.data;
@@ -74,10 +37,10 @@ class NftperpApis {
         }
     };
 
-    public readonly position = async (amm: Amm, trader: string): Promise<PositionResponse> => {
+    public readonly position = async (amm: types.Amm, trader: string): Promise<types.PositionResponse> => {
         try {
             const url = `${this._baseUrl}/position`;
-            const { data } = await axios.get<{ data: PositionResponse }>(url, {
+            const { data } = await axios.get<{ data: types.PositionResponse }>(url, {
                 params: { amm, trader },
             });
             return data.data;
@@ -88,12 +51,12 @@ class NftperpApis {
         }
     };
 
-    public readonly positions = async (
-        trader: string
-    ): Promise<{ [key in Amm]: PositionResponse }> => {
+    public readonly positions = async (trader: string): Promise<{ [key in types.Amm]: types.PositionResponse }> => {
         try {
             const url = `${this._baseUrl}/positions`;
-            const { data } = await axios.get<{ data: { [key in Amm]: PositionResponse } }>(url, {
+            const { data } = await axios.get<{
+                data: { [key in types.Amm]: types.PositionResponse };
+            }>(url, {
                 params: { trader },
             });
             return data.data;
@@ -104,13 +67,10 @@ class NftperpApis {
         }
     };
 
-    public readonly makerPosition = async (
-        amm: Amm,
-        trader: string
-    ): Promise<MakerPositionResponse> => {
+    public readonly makerPosition = async (amm: types.Amm, trader: string): Promise<types.MakerPositionResponse> => {
         try {
             const url = `${this._baseUrl}/position/maker`;
-            const { data } = await axios.get<{ data: MakerPositionResponse }>(url, {
+            const { data } = await axios.get<{ data: types.MakerPositionResponse }>(url, {
                 params: { amm, trader },
             });
             return data.data;
@@ -123,15 +83,14 @@ class NftperpApis {
 
     public readonly makerPositions = async (
         trader: string
-    ): Promise<{ [key in Amm]: MakerPositionResponse }> => {
+    ): Promise<{ [key in types.Amm]: types.MakerPositionResponse }> => {
         try {
             const url = `${this._baseUrl}/positions/maker`;
-            const { data } = await axios.get<{ data: { [key in Amm]: MakerPositionResponse } }>(
-                url,
-                {
-                    params: { trader },
-                }
-            );
+            const { data } = await axios.get<{
+                data: { [key in types.Amm]: types.MakerPositionResponse };
+            }>(url, {
+                params: { trader },
+            });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -140,10 +99,10 @@ class NftperpApis {
         }
     };
 
-    public readonly ammInfo = async (amm: Amm): Promise<AmmInfoResponse> => {
+    public readonly ammInfo = async (amm: types.Amm): Promise<types.AmmInfoResponse> => {
         try {
             const url = `${this._baseUrl}/info`;
-            const { data } = await axios.get<{ data: AmmInfoResponse }>(url, {
+            const { data } = await axios.get<{ data: types.AmmInfoResponse }>(url, {
                 params: { amm },
             });
             return data.data;
@@ -154,10 +113,10 @@ class NftperpApis {
         }
     };
 
-    public readonly ammInfos = async (): Promise<AmmInfosResponse> => {
+    public readonly ammInfos = async (): Promise<types.AmmInfosResponse> => {
         try {
             const url = `${this._baseUrl}/infos`;
-            const { data } = await axios.get<{ data: AmmInfosResponse }>(url);
+            const { data } = await axios.get<{ data: types.AmmInfosResponse }>(url);
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -167,14 +126,14 @@ class NftperpApis {
     };
 
     public readonly openSummary = async (params: {
-        amm: Amm;
+        amm: types.Amm;
         margin: number;
         leverage: number;
-        side: Side;
-    }): Promise<OpenSummaryResponse> => {
+        side: types.Side;
+    }): Promise<types.OpenSummaryResponse> => {
         try {
             const url = `${this._baseUrl}/openSummary`;
-            const { data } = await axios.get<{ data: OpenSummaryResponse }>(url, { params });
+            const { data } = await axios.get<{ data: types.OpenSummaryResponse }>(url, { params });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -184,13 +143,15 @@ class NftperpApis {
     };
 
     public readonly closeMarketSummary = async (params: {
-        amm: Amm;
+        amm: types.Amm;
         trader: string;
         closePercent: number;
-    }): Promise<CloseMarketSummaryResponse> => {
+    }): Promise<types.CloseSummaryResponse> => {
         try {
             const url = `${this._baseUrl}/closeMarketSummary`;
-            const { data } = await axios.get<{ data: CloseMarketSummaryResponse }>(url, { params });
+            const { data } = await axios.get<{ data: types.CloseSummaryResponse }>(url, {
+                params,
+            });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -200,14 +161,16 @@ class NftperpApis {
     };
 
     public readonly closeLimitSummary = async (params: {
-        amm: Amm;
+        amm: types.Amm;
         trader: string;
         trigger: number;
         closePercent: number;
-    }): Promise<CloseMarketSummaryResponse> => {
+    }): Promise<types.CloseSummaryResponse> => {
         try {
             const url = `${this._baseUrl}/closeLimitSummary`;
-            const { data } = await axios.get<{ data: CloseMarketSummaryResponse }>(url, { params });
+            const { data } = await axios.get<{ data: types.CloseSummaryResponse }>(url, {
+                params,
+            });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -216,7 +179,7 @@ class NftperpApis {
         }
     };
 
-    public readonly fundingRate = async (amm: Amm): Promise<string> => {
+    public readonly fundingRate = async (amm: types.Amm): Promise<string> => {
         try {
             const url = `${this._baseUrl}/fundingRate`;
             const { data } = await axios.get<{ data: string }>(url, { params: { amm } });
@@ -228,7 +191,7 @@ class NftperpApis {
         }
     };
 
-    public readonly freeCollateral = async (amm: Amm, trader: string): Promise<string> => {
+    public readonly freeCollateral = async (amm: types.Amm, trader: string): Promise<string> => {
         try {
             const url = `${this._baseUrl}/freeCollateral`;
             const { data } = await axios.get<{ data: string }>(url, { params: { amm, trader } });
@@ -241,13 +204,13 @@ class NftperpApis {
     };
 
     public readonly marginChangeSummary = async (params: {
-        amm: Amm;
+        amm: types.Amm;
         trader: string;
         margin: string;
-    }): Promise<MarginChangeSummaryResponse> => {
+    }): Promise<types.MarginChangeSummaryResponse> => {
         try {
             const url = `${this._baseUrl}/marginChangeSummary`;
-            const { data } = await axios.get<{ data: MarginChangeSummaryResponse }>(url, {
+            const { data } = await axios.get<{ data: types.MarginChangeSummaryResponse }>(url, {
                 params,
             });
             return data.data;
@@ -258,10 +221,10 @@ class NftperpApis {
         }
     };
 
-    public readonly balances = async (trader: string): Promise<BalancesResponse> => {
+    public readonly balances = async (trader: string): Promise<types.BalancesResponse> => {
         try {
             const url = `${this._baseUrl}/balances`;
-            const { data } = await axios.get<{ data: BalancesResponse }>(url, {
+            const { data } = await axios.get<{ data: types.BalancesResponse }>(url, {
                 params: { trader },
             });
             return data.data;
@@ -285,12 +248,12 @@ class NftperpApis {
     };
 
     public readonly marketTrades = async (
-        params?: TradeApiParams
-    ): Promise<StatsApiResponse<MarketTrade>> => {
+        params?: types.TradeApiParams
+    ): Promise<types.StatsApiResponse<types.MarketTrade>> => {
         try {
             const url = `${this._baseUrl}/marketTrades`;
             const { data } = await axios.get<{
-                data: StatsApiResponse<MarketTrade>;
+                data: types.StatsApiResponse<types.MarketTrade>;
             }>(url, { params });
             return data.data;
             /* eslint-disable */
@@ -301,12 +264,12 @@ class NftperpApis {
     };
 
     public readonly fundings = async (
-        params?: FundingApiParams
-    ): Promise<StatsApiResponse<ProcessedFundingPaymentEvent>> => {
+        params?: types.FundingApiParams
+    ): Promise<types.StatsApiResponse<types.ProcessedFundingPaymentEvent>> => {
         try {
             const url = `${this._baseUrl}/fundings`;
             const { data } = await axios.get<{
-                data: StatsApiResponse<ProcessedFundingPaymentEvent>;
+                data: types.StatsApiResponse<types.ProcessedFundingPaymentEvent>;
             }>(url, { params });
             return data.data;
             /* eslint-disable */
@@ -316,12 +279,12 @@ class NftperpApis {
         }
     };
 
-    public readonly orders = async (params: { amm: Amm; trader: string }): Promise<Order[]> => {
+    public readonly orders = async (amm: types.Amm, trader: string): Promise<types.Order[]> => {
         try {
             const url = `${this._baseUrl}/orders`;
             const { data } = await axios.get<{
-                data: Order[];
-            }>(url, { params });
+                data: types.Order[];
+            }>(url, { params: { amm, trader } });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -330,15 +293,12 @@ class NftperpApis {
         }
     };
 
-    public readonly triggerOrders = async (params: {
-        amm: Amm;
-        trader: string;
-    }): Promise<Order[]> => {
+    public readonly triggerOrders = async (amm: types.Amm, trader: string): Promise<types.Order[]> => {
         try {
             const url = `${this._baseUrl}/orders/trigger`;
             const { data } = await axios.get<{
-                data: Order[];
-            }>(url, { params });
+                data: types.Order[];
+            }>(url, { params: { amm, trader } });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -347,12 +307,12 @@ class NftperpApis {
         }
     };
 
-    public readonly orderbook = async (params: { amm: Amm }): Promise<OrderBook> => {
+    public readonly orderbook = async (amm: types.Amm): Promise<types.OrderBook> => {
         try {
             const url = `${this._baseUrl}/orderbook`;
             const { data } = await axios.get<{
-                data: OrderBook;
-            }>(url, { params });
+                data: types.OrderBook;
+            }>(url, { params: { amm } });
             return data.data;
             /* eslint-disable */
         } catch (e: any) {
@@ -366,12 +326,7 @@ class NftperpApis {
         if (e.response) {
             const res = e.response;
             if (res.status === 429) {
-                const rlHeaders = this._extractRateLimitHeaders(res.headers);
-                const error = new RateLimitError(
-                    `RATE_LIMIT: Too many requests, please try in a while`,
-                    rlHeaders
-                );
-                throw error;
+                throw new Error(`RATE_LIMIT: Too many requests, please try in a while`);
             } else if (res.data && res.data.message) {
                 throw new Error(res.data.message);
             }
@@ -379,16 +334,4 @@ class NftperpApis {
         throw new Error(e.message);
         /* eslint-enable */
     }
-
-    private _extractRateLimitHeaders(headers: AxiosHeaders): RateLimitHeaders {
-        const rateLimitHeaders: RateLimitHeaders = {
-            ratelimit: parseInt(headers.get("ratelimit-limit") as string),
-            ratelimitRemaining: parseInt(headers.get("ratelimit-remaining") as string),
-            ratelimitReset: parseInt(headers.get("ratelimit-reset") as string),
-            retryAfter: parseInt(headers.get("retry-after") as string),
-        };
-        return rateLimitHeaders;
-    }
 }
-
-export default NftperpApis;

@@ -1,18 +1,18 @@
 import { Config } from "../types";
 
 export const config: Config = {
-    TRADING_COMP: {
+    PAPER_TRADING: {
         apiBaseUrl: "https://api.nftperp.xyz",
         apiWsUrl: "https://api.nftperp.xyz",
         chainId: 42161,
-        ch: "0x882B2578C4b8F1AE22eeF8A1692E8A5aF8c725BC",
-        iF: "0x7733007Fb8B56435f13c287Babf09696111a9D98",
-        weth: "0x4921769431F322099659b8Cf198526E586ae981E",
+        ch: "0x8f940C5A2be8ee72487CB5E257a6DE54DBbfD9DD",
+        iF: "0xe70Ad23d0171de72c9015212359A1Fe1Cd30Ff35",
+        weth: "0x9A3111B39f67784f312109783A3422Bd39D34424",
         amms: {
-            bayc: "0x59d691DC3913eE29D9182EF3EdFaa1B07c80a869",
-            milady: "0x6c792C96c026d32B0219C983d87C959082c9865c",
-            ppg: "0x91eBBfd56a98739280A1349F1Dbf2ea72e8453DC",
-            cdb: "0xc8a186248305dC8C3218988E5EB5CeC9BFBcD292",
+            bayc: "0xc7cA02aa95EBcCeBC098A4C0a07de0CDa110036b",
+            milady: "0x3eD0F8F0226585a1b66469A903d4eD5f27346f9C",
+            ppg: "0x30cA2c67aA824607d4165E03b9C5295bCa5F1f46",
+            cdb: "0x4564514B934004fCE5e9F0713E17D7D3B19B672C",
         },
     },
 };

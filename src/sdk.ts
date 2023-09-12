@@ -41,7 +41,7 @@ export class SDK {
      * @param params.leverage leverage
      * @returns tx
      */
-    public async createMarketOrder(
+    public async openMarketOrder(
         params: {
             amm: types.Amm;
             side: types.Side;
@@ -79,7 +79,7 @@ export class SDK {
      * @param params.leverage leverage
      * @returns tx
      */
-    public async createLimitOrder(
+    public async openLimitOrder(
         params: {
             amm: types.Amm;
             side: types.Side;
@@ -116,7 +116,7 @@ export class SDK {
      * @param params.type SL or TP
      * @returns tx
      */
-    public async createTriggerOrder(
+    public async openTriggerOrder(
         params: {
             amm: types.Amm;
             price: string;

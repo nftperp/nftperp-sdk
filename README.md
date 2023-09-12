@@ -50,7 +50,7 @@ const nftperp = new SDK({ wallet, instance: Instance.PAPER_TRADING });
 ```ts
 import { Amm, Side } from "@nftperp/sdk/types";
 
-const tx = await nftperp.createMarketOrder({
+const tx = await nftperp.openMarketOrder({
     amm: Amm.BAYC,
     side: Side.BUY,
     margin: 0.1, // in eth
@@ -72,7 +72,7 @@ console.log(nftperp.getSupportedAmms(Instance.PAPER_TRADING));
 ```ts
 import { Side } from "@nftperp/sdk/types";
 
-const tx = await nftperp.createLimitOrder({
+const tx = await nftperp.openLimitOrder({
     amm: AMM.BAYC,
     side: Side.SELL,
     price: 30,
@@ -92,7 +92,7 @@ const position = await nftperp.getPosition(Amm.BAYC);
 ```ts
 import { Side, TriggerType } from "@nftperp/sdk/types";
 
-const hash = await nftperp.createTriggerOrder({
+const hash = await nftperp.openTriggerOrder({
     amm: Amm.BAYC,
     price: 20,
     size: 0.1 // in BAYC
@@ -108,7 +108,7 @@ const hash = await nftperp.closePosition({
 });
 ```
 
-#### Calculate open position transaction summary
+#### Calculate open summary
 
 ```ts
 const summary = await nftperp.getOpenSummary({
@@ -119,7 +119,7 @@ const summary = await nftperp.getOpenSummary({
 });
 ```
 
-#### Calculate close position transaction summary
+#### Calculate close summary
 
 ```ts
 const summary = await nftperp.getCloseMarketSummary({ amm: Amm.BAYC });

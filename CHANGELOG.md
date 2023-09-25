@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.1.2](https://github.com/nftperp/nftperp-sdk/compare/v4.1.1...v4.1.2) (2023-09-25)
+
+
+### Bug Fixes
+
+* **close position:** pass abs size value to fn ([b441494](https://github.com/nftperp/nftperp-sdk/commit/b44149470817e92cb84d64788c04d694b8ac021b))
+
+### [4.1.1](https://github.com/nftperp/nftperp-sdk/compare/v4.1.0...v4.1.1) (2023-09-13)
+
 ## [4.1.0](https://github.com/nftperp/nftperp-sdk/compare/v4.0.0...v4.1.0) (2023-09-12)
 
 ## [4.0.0](https://github.com/nftperp/nftperp-sdk/compare/v3.11.1...v4.0.0) (2023-09-12)

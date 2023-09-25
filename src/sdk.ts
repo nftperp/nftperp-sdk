@@ -176,7 +176,7 @@ export class SDK {
 
         return this._closePosition(
             this._getAmmAddress(amm),
-            utils.toWeiStr(utils.big(size).mul(closePercent).div(100)),
+            utils.toWeiStr(utils.big(size).mul(closePercent).div(100).abs()),
             utils.toWeiStr(quoteAssetAmountLimit),
             overrides
         );

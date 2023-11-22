@@ -239,12 +239,8 @@ export class SDK {
      * @param amm amm eg bayc
      * @returns tx
      */
-    public async deleteTriggerOrder(
-        id: string,
-        amm: types.Amm,
-        overrides?: ethers.Overrides
-    ): Promise<ethers.ContractTransaction> {
-        return this._ch.deleteTriggerOrder(id, this._getAmmAddress(amm), overrides);
+    public async deleteTriggerOrder(id: string, overrides?: ethers.Overrides): Promise<ethers.ContractTransaction> {
+        return this._ch.deleteTriggerOrder(id, overrides);
     }
 
     /**

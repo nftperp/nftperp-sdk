@@ -7,6 +7,7 @@ export enum Amm {
     MILADY = "milady",
     PPG = "ppg",
     CDB = "cdb",
+    CAP = "cap",
 }
 
 export enum Side {

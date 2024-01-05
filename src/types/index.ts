@@ -8,6 +8,9 @@ export enum Amm {
     PPG = "ppg",
     CDB = "cdb",
     CAP = "cap",
+    SPROTO = "sproto",
+    SOFA = "sofa",
+    DEGODS = "degods",
 }
 
 export enum Side {

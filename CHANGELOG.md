@@ -2,12 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [4.1.2](https://github.com/nftperp/nftperp-sdk/compare/v4.1.1...v4.1.2) (2023-09-25)
+## [5.1.0](https://github.com/nftperp/nftperp-sdk/compare/v5.0.0...v5.1.0) (2024-01-05)
 
+
+### Features
+
+* **method:** getContracts ([f07501c](https://github.com/nftperp/nftperp-sdk/commit/f07501c9a4a74fce726345ce4872291042210520))
+
+## [5.0.0](https://github.com/nftperp/nftperp-sdk/compare/v4.3.0...v5.0.0) (2024-01-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **client:** update to ethers v6
+
+### Features
+
+* **client:** update to ethers v6 ([97de669](https://github.com/nftperp/nftperp-sdk/commit/97de669a5852cd328817e995fb39eaf4ae68ac91))
+
+## [4.3.0](https://github.com/nftperp/nftperp-sdk/compare/v4.2.0...v4.3.0) (2023-11-22)
+
+## [4.2.0](https://github.com/nftperp/nftperp-sdk/compare/v4.1.2...v4.2.0) (2023-11-22)
+
+### [4.1.2](https://github.com/nftperp/nftperp-sdk/compare/v4.1.1...v4.1.2) (2023-09-25)
 
 ### Bug Fixes
 
-* **close position:** pass abs size value to fn ([b441494](https://github.com/nftperp/nftperp-sdk/commit/b44149470817e92cb84d64788c04d694b8ac021b))
+-   **close position:** pass abs size value to fn ([b441494](https://github.com/nftperp/nftperp-sdk/commit/b44149470817e92cb84d64788c04d694b8ac021b))
 
 ### [4.1.1](https://github.com/nftperp/nftperp-sdk/compare/v4.1.0...v4.1.1) (2023-09-13)
 
@@ -15,10 +36,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [4.0.0](https://github.com/nftperp/nftperp-sdk/compare/v3.11.1...v4.0.0) (2023-09-12)
 
-
 ### Bug Fixes
 
-* ethers override param ([9d4f1cd](https://github.com/nftperp/nftperp-sdk/commit/9d4f1cdd946804d5eb41b07db8cdf57374f5c28a))
+-   ethers override param ([9d4f1cd](https://github.com/nftperp/nftperp-sdk/commit/9d4f1cdd946804d5eb41b07db8cdf57374f5c28a))
 
 ### [3.11.1](https://github.com/nftperp/nftperp-sdk/compare/v3.11.0...v3.11.1) (2023-07-02)
 

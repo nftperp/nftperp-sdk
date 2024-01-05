@@ -23,8 +23,8 @@ export class SDK {
         void this._validateWalletAndInstance(wallet, instance);
 
         const { ch, weth } = utils.getInstanceConfig(instance);
-        this._ch = new ethers.Contract(ch, abis.clearingHouse, wallet) as types.ClearingHouse;
-        this._weth = new ethers.Contract(weth, abis.erc20Abi, wallet) as types.ERC20;
+        this._ch = new ethers.Contract(ch, abis.clearingHouse, wallet) as unknown as types.ClearingHouse;
+        this._weth = new ethers.Contract(weth, abis.erc20, wallet) as unknown as types.ERC20;
 
         this._wallet = wallet;
         this._instance = instance;
@@ -41,7 +41,7 @@ export class SDK {
      * @param params.leverage leverage
      * @returns tx
      */
-    public async openMarketOrder(
+    public async createMarketOrder(
         params: {
             amm: types.Amm;
             side: types.Side;
@@ -49,14 +49,17 @@ export class SDK {
             leverage: number;
             slippagePercent?: number;
         },
-        overrides: ethers.Overrides = {}
-    ): Promise<ethers.ethers.ContractTransaction> {
+        options?: { maxApprove?: boolean; skipChecks?: boolean },
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, margin, leverage, slippagePercent } = params;
 
         this._checkAmm(amm);
         const summary = await this._api.openSummary({ amm, margin, leverage, side });
-        await this._checkBalance(utils.big(summary.totalCost));
-        await this._checkAllowance(utils.big(summary.totalCost));
+        if (!options?.skipChecks) {
+            await this._checkBalance(utils.big(summary.totalCost));
+            await this._checkAllowance(utils.big(summary.totalCost), options?.maxApprove);
+        }
         const baseLimit = this._getSlippageBaseAmount(side, utils.big(summary.outputSize), slippagePercent);
 
         return this._openPosition(
@@ -65,7 +68,7 @@ export class SDK {
             utils.toWeiStr(margin),
             utils.toWeiStr(leverage),
             utils.toWeiStr(baseLimit),
-            overrides
+            overrides,
         );
     }
 
@@ -79,7 +82,7 @@ export class SDK {
      * @param params.leverage leverage
      * @returns tx
      */
-    public async openLimitOrder(
+    public async createLimitOrder(
         params: {
             amm: types.Amm;
             side: types.Side;
@@ -88,8 +91,8 @@ export class SDK {
             leverage: number;
             reduceOnly?: boolean;
         },
-        overrides: ethers.Overrides = {}
-    ): Promise<ethers.ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
         const trader = await this._getAddress();
@@ -103,7 +106,7 @@ export class SDK {
                 leverage: utils.toWeiStr(leverage),
                 reduceOnly: !!reduceOnly,
             },
-            overrides
+            overrides,
         );
     }
 
@@ -116,15 +119,15 @@ export class SDK {
      * @param params.type SL or TP
      * @returns tx
      */
-    public async openTriggerOrder(
+    public async createTriggerOrder(
         params: {
             amm: types.Amm;
             price: number;
             size: number;
             type: types.TriggerType;
         },
-        overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, price, size, type } = params;
 
         const trader = await this._getAddress();
@@ -137,7 +140,7 @@ export class SDK {
                 quoteLimit: 0,
                 takeProfit: type === types.TriggerType.TAKE_PROFIT,
             },
-            overrides
+            overrides,
         );
     }
 
@@ -153,8 +156,8 @@ export class SDK {
             closePercent?: number;
             slippagePercent?: number;
         },
-        overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, closePercent: _closePercent, slippagePercent } = params;
 
         const closePercent = _closePercent ?? 100;
@@ -171,14 +174,14 @@ export class SDK {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             side!,
             utils.big(summary.outputNotional),
-            slippagePercent
+            slippagePercent,
         );
 
         return this._closePosition(
             this._getAmmAddress(amm),
             utils.toWeiStr(utils.big(size).mul(closePercent).div(100).abs()),
             utils.toWeiStr(quoteAssetAmountLimit),
-            overrides
+            overrides,
         );
     }
 
@@ -204,8 +207,8 @@ export class SDK {
             leverage: number;
             reduceOnly?: boolean;
         },
-        overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
         const trader = await this._getAddress();
@@ -220,7 +223,7 @@ export class SDK {
                 leverage: utils.toWeiStr(leverage),
                 reduceOnly: !!reduceOnly,
             },
-            overrides
+            overrides,
         );
     }
 
@@ -229,22 +232,120 @@ export class SDK {
      * @param id order id
      * @returns tx
      */
-    public async deleteLimitOrder(id: number, overrides: ethers.Overrides = {}): Promise<ethers.ContractTransaction> {
+    public async deleteLimitOrder(
+        id: number,
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.deleteLimitOrder(id, overrides);
     }
 
     /**
      * Delete a trigger order
      * @param id order id
-     * @param amm amm eg bayc
      * @returns tx
      */
     public async deleteTriggerOrder(
-        id: string,
-        amm: types.Amm,
-        overrides?: ethers.Overrides
-    ): Promise<ethers.ContractTransaction> {
-        return this._ch.deleteTriggerOrder(id, this._getAmmAddress(amm), overrides);
+        id: number,
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
+        return this._ch.deleteTriggerOrder(id, overrides);
+    }
+
+    /**
+     * Create limit order batch
+     * @param params limit order params
+     * @returns tx
+     */
+    public async createLimitOrderBatch(
+        params: {
+            amm: types.Amm;
+            side: types.Side;
+            price: number;
+            margin: number;
+            leverage: number;
+            reduceOnly?: boolean;
+        }[],
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
+        const trader = await this._getAddress();
+        params.map((p) => ({
+            trader,
+            amm: this._getAmmAddress(p.amm),
+            side: p.side === types.Side.BUY ? 0 : 1,
+            trigger: utils.toWeiStr(p.price),
+            quoteAmount: utils.toWeiStr(p.margin),
+            leverage: utils.toWeiStr(p.leverage),
+            reduceOnly: !!p.reduceOnly,
+        }));
+
+        return this._ch.createLimitOrderBatch(
+            params.map((p) => ({
+                trader,
+                amm: this._getAmmAddress(p.amm),
+                side: p.side === types.Side.BUY ? 0 : 1,
+                trigger: utils.toWeiStr(p.price),
+                quoteAmount: utils.toWeiStr(p.margin),
+                leverage: utils.toWeiStr(p.leverage),
+                reduceOnly: !!p.reduceOnly,
+            })),
+            overrides,
+        );
+    }
+
+    /**
+     * Delete limit order batch
+     * @param ids order ids
+     * @returns tx
+     */
+    public async deleteLimitOrderBatch(
+        ids: number[],
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
+        return this._ch.deleteLimitOrderBatch(ids, overrides);
+    }
+
+    /**
+     * Update limit order batch
+     * @param ids orders ids to update
+     * @param params new limit order params
+     * @returns tx
+     */
+    public async updateLimitOrderBatch(
+        ids: number[],
+        params: {
+            amm: types.Amm;
+            side: types.Side;
+            price: number;
+            margin: number;
+            leverage: number;
+            reduceOnly?: boolean;
+        }[],
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
+        const trader = await this._getAddress();
+        params.map((p) => ({
+            trader,
+            amm: this._getAmmAddress(p.amm),
+            side: p.side === types.Side.BUY ? 0 : 1,
+            trigger: utils.toWeiStr(p.price),
+            quoteAmount: utils.toWeiStr(p.margin),
+            leverage: utils.toWeiStr(p.leverage),
+            reduceOnly: !!p.reduceOnly,
+        }));
+
+        return this._ch.updateLimitOrderBatch(
+            ids,
+            params.map((p) => ({
+                trader,
+                amm: this._getAmmAddress(p.amm),
+                side: p.side === types.Side.BUY ? 0 : 1,
+                trigger: utils.toWeiStr(p.price),
+                quoteAmount: utils.toWeiStr(p.margin),
+                leverage: utils.toWeiStr(p.leverage),
+                reduceOnly: !!p.reduceOnly,
+            })),
+            overrides,
+        );
     }
 
     /**
@@ -256,8 +357,8 @@ export class SDK {
      */
     public async addMargin(
         params: { amm: types.Amm; amount: number },
-        overrides?: ethers.Overrides
-    ): Promise<ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, amount } = params;
         const { size } = await this.getPosition(amm);
         if (utils.big(size).eq(0)) {
@@ -278,8 +379,8 @@ export class SDK {
      */
     public async removeMargin(
         params: { amm: types.Amm; amount: number },
-        overrides?: ethers.Overrides
-    ): Promise<ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, amount } = params;
         const { size, trader } = await this.getPosition(amm);
         if (utils.big(size).eq(0)) {
@@ -303,15 +404,6 @@ export class SDK {
     }
 
     /**
-     * Get all positions
-     * @returns all positions
-     */
-    public async getAllPositions(trader?: string): Promise<{ [key in types.Amm]: types.PositionResponse }> {
-        const positions = await this._api.positions(trader ?? (await this._getAddress()));
-        return positions;
-    }
-
-    /**
      * Get maker position
      * @param amm amm eg bayc
      * @returns position
@@ -321,18 +413,18 @@ export class SDK {
     }
 
     /**
-     * Get open orders
+     * Get all limit orders
      * @returns all orders
      */
-    public async getOpenLimitOrders(amm: types.Amm, trader?: string): Promise<types.Order[]> {
-        return this._api.orders(amm, trader ?? (await this._getAddress()));
+    public async getLimitOrders(amm: types.Amm, trader?: string): Promise<types.Order[]> {
+        return this._api.orders(amm, trader);
     }
 
     /**
-     * Get all trigger orders
+     * Get trigger orders
      * @returns all trigger orders
      */
-    public async getOpenTriggerOrders(amm: types.Amm): Promise<types.Order[]> {
+    public async getTriggerOrders(amm: types.Amm): Promise<types.Order[]> {
         const orders = await this._api.triggerOrders(amm, await this._getAddress());
         return orders;
     }
@@ -343,6 +435,14 @@ export class SDK {
      */
     public async getOrderbook(amm: types.Amm): Promise<types.OrderBook> {
         return this._api.orderbook(amm);
+    }
+
+    /**
+     * Get balances
+     * @returns balances
+     */
+    public async getBalances(trader?: string): Promise<types.BalancesResponse> {
+        return this._api.balances(trader ?? (await this._getAddress()));
     }
 
     /**
@@ -457,9 +557,9 @@ export class SDK {
      * @param amm amm eg bayc
      * @returns max leverage
      */
-    public async getMaxLeverage(amm: types.Amm): Promise<string> {
+    public async getMaxLeverage(amm: types.Amm): Promise<number> {
         const ammInfo = await this._api.ammInfo(amm);
-        return utils.stringify(utils.big(1).div(ammInfo.initMarginRatio));
+        return utils.numerify(utils.big(1).div(ammInfo.initMarginRatio));
     }
 
     /**
@@ -496,15 +596,6 @@ export class SDK {
      */
     public async getAmmInfo(amm: types.Amm): Promise<types.AmmInfoResponse> {
         return this._api.ammInfo(amm);
-    }
-
-    /**
-     * Get all amm infos
-     * @returns amm Infos
-     */
-    public async getAllAmmInfos(): Promise<types.AmmInfosResponse> {
-        const ammInfos = await this._api.ammInfos();
-        return ammInfos;
     }
 
     /**
@@ -550,9 +641,17 @@ export class SDK {
      * Get supported Amms
      * @returns Amms
      */
-    public getSupportedAmms(instance: types.Instance): (keyof typeof types.Amm)[] {
+    public getSupportedAmms(instance = types.Instance.PAPER_TRADING): (keyof typeof types.Amm)[] {
         const { amms } = utils.getInstanceConfig(instance);
         return Object.keys(amms) as (keyof typeof types.Amm)[];
+    }
+
+    /**
+     * Get contract addresses
+     * @returns Amms
+     */
+    public getContracts(instance = types.Instance.PAPER_TRADING): types.InstanceConfig {
+        return utils.getInstanceConfig(instance);
     }
 
     //
@@ -612,27 +711,27 @@ export class SDK {
      * @returns allowance in `eth`
      */
     private async _getAllowance(): Promise<Big> {
-        return utils.fromWei(await this._weth.allowance(await this._getAddress(), this._ch.address));
-    }
-
-    /**
-     * sets max approval on clearing house
-     * @returns hash
-     */
-    private async _maxApprove(): Promise<string> {
-        const tx = await this._weth.approve(this._ch.address, ethers.constants.MaxUint256);
-        return tx.hash;
+        return utils.fromWei(await this._weth.allowance(await this._getAddress(), await this._ch.getAddress()));
     }
 
     /**
      * approves if allowance less than amount
      * @requires amount in `eth`
      */
-    private async _checkAllowance(amount: Big): Promise<void> {
+    private async _checkAllowance(amount: Big, maxApprove = true): Promise<void> {
         const allowance = await this._getAllowance();
         if (allowance.lt(amount)) {
-            await this._maxApprove();
+            await this._approve(utils.toWeiStr(amount), maxApprove);
         }
+    }
+
+    /**
+     * sets max approval on clearing house
+     * @returns hash
+     */
+    private async _approve(amount: string, maxApprove: boolean): Promise<string> {
+        const tx = await this._weth.approve(await this._ch.getAddress(), maxApprove ? ethers.MaxUint256 : amount);
+        return tx.hash;
     }
 
     /**
@@ -645,8 +744,8 @@ export class SDK {
         margin: string,
         leverage: string,
         baseLimit: string,
-        overrides: ethers.ethers.Overrides = {}
-    ): Promise<ethers.ethers.ContractTransaction> {
+        overrides: ethers.ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.openPosition(amm, side, margin, leverage, baseLimit, overrides);
     }
 
@@ -654,7 +753,12 @@ export class SDK {
      * close position
      * @returns hash
      */
-    private async _closePosition(amm: string, size: string, quoteLimit: string, overrides: ethers.Overrides = {}) {
+    private async _closePosition(
+        amm: string,
+        size: string,
+        quoteLimit: string,
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.closePosition(amm, size, quoteLimit, overrides);
     }
 
@@ -665,8 +769,8 @@ export class SDK {
     private async _addMargin(
         amm: string,
         marginToAdd: string,
-        overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.addMargin(amm, marginToAdd, overrides);
     }
 
@@ -677,8 +781,8 @@ export class SDK {
     private async _removeMargin(
         amm: string,
         marginToRemove: string,
-        overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.removeMargin(amm, marginToRemove, overrides);
     }
 
@@ -697,7 +801,7 @@ export class SDK {
             throw new Error("wallet has no provider attached");
         }
         const { chainId } = await wallet.provider.getNetwork();
-        if (chainId !== utils.getInstanceConfig(instance).chainId) {
+        if (Number(chainId) !== utils.getInstanceConfig(instance).chainId) {
             throw new Error("provider rpc and instance do not match");
         }
     }

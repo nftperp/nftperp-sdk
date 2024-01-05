@@ -1,8 +1,8 @@
-import { abi as amm } from "./AMM.json";
-import { abi as clearingHouse } from "./ClearingHouse.json";
-import { abi as insuranceFund } from "./InsuranceFund.json";
-import { abi as erc20Abi } from "./ERC20.json";
+import amm from "./AMM.json";
+import clearingHouse from "./ClearingHouse.json";
+import insuranceFund from "./InsuranceFund.json";
+import erc20 from "./ERC20.json";
 
-const abis = { amm, clearingHouse, insuranceFund, erc20Abi };
+const abis = { amm, clearingHouse, insuranceFund, erc20 };
 
 export default abis;

@@ -49,14 +49,17 @@ export class SDK {
             leverage: number;
             slippagePercent?: number;
         },
+        options?: { maxApprove?: boolean; skipChecks?: boolean },
         overrides: ethers.Overrides = {}
     ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, margin, leverage, slippagePercent } = params;
 
         this._checkAmm(amm);
         const summary = await this._api.openSummary({ amm, margin, leverage, side });
-        await this._checkBalance(utils.big(summary.totalCost));
-        await this._checkAllowance(utils.big(summary.totalCost));
+        if (!options?.skipChecks) {
+            await this._checkBalance(utils.big(summary.totalCost));
+            await this._checkAllowance(utils.big(summary.totalCost), options?.maxApprove);
+        }
         const baseLimit = this._getSlippageBaseAmount(side, utils.big(summary.outputSize), slippagePercent);
 
         return this._openPosition(
@@ -239,7 +242,6 @@ export class SDK {
     /**
      * Delete a trigger order
      * @param id order id
-     * @param amm amm eg bayc
      * @returns tx
      */
     public async deleteTriggerOrder(
@@ -600,23 +602,23 @@ export class SDK {
     }
 
     /**
-     * sets max approval on clearing house
-     * @returns hash
-     */
-    private async _maxApprove(): Promise<string> {
-        const tx = await this._weth.approve(await this._ch.getAddress(), ethers.MaxUint256);
-        return tx.hash;
-    }
-
-    /**
      * approves if allowance less than amount
      * @requires amount in `eth`
      */
-    private async _checkAllowance(amount: Big): Promise<void> {
+    private async _checkAllowance(amount: Big, maxApprove = true): Promise<void> {
         const allowance = await this._getAllowance();
         if (allowance.lt(amount)) {
-            await this._maxApprove();
+            await this._approve(utils.toWeiStr(amount), maxApprove);
         }
+    }
+
+    /**
+     * sets max approval on clearing house
+     * @returns hash
+     */
+    private async _approve(amount: string, maxApprove: boolean): Promise<string> {
+        const tx = await this._weth.approve(await this._ch.getAddress(), maxApprove ? ethers.MaxUint256 : amount);
+        return tx.hash;
     }
 
     /**

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.1.0](https://github.com/nftperp/nftperp-sdk/compare/v5.0.0...v5.1.0) (2024-01-05)
+
+
+### Features
+
+* **method:** getContracts ([f07501c](https://github.com/nftperp/nftperp-sdk/commit/f07501c9a4a74fce726345ce4872291042210520))
+
 ## [5.0.0](https://github.com/nftperp/nftperp-sdk/compare/v4.3.0...v5.0.0) (2024-01-05)
 
 

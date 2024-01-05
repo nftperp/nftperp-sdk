@@ -41,7 +41,7 @@ export class SDK {
      * @param params.leverage leverage
      * @returns tx
      */
-    public async openMarketOrder(
+    public async createMarketOrder(
         params: {
             amm: types.Amm;
             side: types.Side;
@@ -82,7 +82,7 @@ export class SDK {
      * @param params.leverage leverage
      * @returns tx
      */
-    public async openLimitOrder(
+    public async createLimitOrder(
         params: {
             amm: types.Amm;
             side: types.Side;
@@ -119,7 +119,7 @@ export class SDK {
      * @param params.type SL or TP
      * @returns tx
      */
-    public async openTriggerOrder(
+    public async createTriggerOrder(
         params: {
             amm: types.Amm;
             price: number;
@@ -252,6 +252,103 @@ export class SDK {
     }
 
     /**
+     * Create limit order batch
+     * @param params limit order params
+     * @returns tx
+     */
+    public async createLimitOrderBatch(
+        params: {
+            amm: types.Amm;
+            side: types.Side;
+            price: number;
+            margin: number;
+            leverage: number;
+            reduceOnly?: boolean;
+        }[],
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
+        const trader = await this._getAddress();
+        params.map((p) => ({
+            trader,
+            amm: this._getAmmAddress(p.amm),
+            side: p.side === types.Side.BUY ? 0 : 1,
+            trigger: utils.toWeiStr(p.price),
+            quoteAmount: utils.toWeiStr(p.margin),
+            leverage: utils.toWeiStr(p.leverage),
+            reduceOnly: !!p.reduceOnly,
+        }));
+
+        return this._ch.createLimitOrderBatch(
+            params.map((p) => ({
+                trader,
+                amm: this._getAmmAddress(p.amm),
+                side: p.side === types.Side.BUY ? 0 : 1,
+                trigger: utils.toWeiStr(p.price),
+                quoteAmount: utils.toWeiStr(p.margin),
+                leverage: utils.toWeiStr(p.leverage),
+                reduceOnly: !!p.reduceOnly,
+            })),
+            overrides,
+        );
+    }
+
+    /**
+     * Delete limit order batch
+     * @param ids order ids
+     * @returns tx
+     */
+    public async deleteLimitOrderBatch(
+        ids: number[],
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
+        return this._ch.deleteLimitOrderBatch(ids, overrides);
+    }
+
+    /**
+     * Update limit order batch
+     * @param ids orders ids to update
+     * @param params new limit order params
+     * @returns tx
+     */
+    public async updateLimitOrderBatch(
+        ids: number[],
+        params: {
+            amm: types.Amm;
+            side: types.Side;
+            price: number;
+            margin: number;
+            leverage: number;
+            reduceOnly?: boolean;
+        }[],
+        overrides: ethers.Overrides = {},
+    ): Promise<ethers.ContractTransactionResponse> {
+        const trader = await this._getAddress();
+        params.map((p) => ({
+            trader,
+            amm: this._getAmmAddress(p.amm),
+            side: p.side === types.Side.BUY ? 0 : 1,
+            trigger: utils.toWeiStr(p.price),
+            quoteAmount: utils.toWeiStr(p.margin),
+            leverage: utils.toWeiStr(p.leverage),
+            reduceOnly: !!p.reduceOnly,
+        }));
+
+        return this._ch.updateLimitOrderBatch(
+            ids,
+            params.map((p) => ({
+                trader,
+                amm: this._getAmmAddress(p.amm),
+                side: p.side === types.Side.BUY ? 0 : 1,
+                trigger: utils.toWeiStr(p.price),
+                quoteAmount: utils.toWeiStr(p.margin),
+                leverage: utils.toWeiStr(p.leverage),
+                reduceOnly: !!p.reduceOnly,
+            })),
+            overrides,
+        );
+    }
+
+    /**
      * Add margin to position. increases margin ratio (position health)
      * @param params params for adding margin
      * @param params.amm amm eg bayc
@@ -316,18 +413,18 @@ export class SDK {
     }
 
     /**
-     * Get open orders
+     * Get all limit orders
      * @returns all orders
      */
-    public async getOpenLimitOrders(amm: types.Amm, trader?: string): Promise<types.Order[]> {
-        return this._api.orders(amm, trader ?? (await this._getAddress()));
+    public async getLimitOrders(amm: types.Amm, trader?: string): Promise<types.Order[]> {
+        return this._api.orders(amm, trader);
     }
 
     /**
-     * Get all trigger orders
+     * Get trigger orders
      * @returns all trigger orders
      */
-    public async getOpenTriggerOrders(amm: types.Amm): Promise<types.Order[]> {
+    public async getTriggerOrders(amm: types.Amm): Promise<types.Order[]> {
         const orders = await this._api.triggerOrders(amm, await this._getAddress());
         return orders;
     }
@@ -338,6 +435,14 @@ export class SDK {
      */
     public async getOrderbook(amm: types.Amm): Promise<types.OrderBook> {
         return this._api.orderbook(amm);
+    }
+
+    /**
+     * Get balances
+     * @returns balances
+     */
+    public async getBalances(trader?: string): Promise<types.BalancesResponse> {
+        return this._api.balances(trader ?? (await this._getAddress()));
     }
 
     /**

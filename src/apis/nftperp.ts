@@ -202,7 +202,7 @@ export class NftperpApis {
     };
 
     public readonly marketTrades = async (
-        params?: types.TradeApiParams
+        params?: types.TradeApiParams,
     ): Promise<types.StatsApiResponse<types.MarketTrade>> => {
         try {
             const url = `${this._baseUrl}/marketTrades`;
@@ -218,7 +218,7 @@ export class NftperpApis {
     };
 
     public readonly fundings = async (
-        params?: types.FundingApiParams
+        params?: types.FundingApiParams,
     ): Promise<types.StatsApiResponse<types.ProcessedFundingPaymentEvent>> => {
         try {
             const url = `${this._baseUrl}/fundings`;
@@ -233,7 +233,7 @@ export class NftperpApis {
         }
     };
 
-    public readonly orders = async (amm: types.Amm, trader: string): Promise<types.Order[]> => {
+    public readonly orders = async (amm: types.Amm, trader?: string): Promise<types.Order[]> => {
         try {
             const url = `${this._baseUrl}/orders`;
             const { data } = await axios.get<{
@@ -275,6 +275,7 @@ export class NftperpApis {
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private _checkError(e: any): never {
         /* eslint-disable */
         if (e.response) {

@@ -23,8 +23,8 @@ export class SDK {
         void this._validateWalletAndInstance(wallet, instance);
 
         const { ch, weth } = utils.getInstanceConfig(instance);
-        this._ch = new ethers.Contract(ch, abis.clearingHouse, wallet) as types.ClearingHouse;
-        this._weth = new ethers.Contract(weth, abis.erc20Abi, wallet) as types.ERC20;
+        this._ch = new ethers.Contract(ch, abis.clearingHouse, wallet) as unknown as types.ClearingHouse;
+        this._weth = new ethers.Contract(weth, abis.erc20, wallet) as unknown as types.ERC20;
 
         this._wallet = wallet;
         this._instance = instance;
@@ -50,7 +50,7 @@ export class SDK {
             slippagePercent?: number;
         },
         overrides: ethers.Overrides = {}
-    ): Promise<ethers.ethers.ContractTransaction> {
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, margin, leverage, slippagePercent } = params;
 
         this._checkAmm(amm);
@@ -89,7 +89,7 @@ export class SDK {
             reduceOnly?: boolean;
         },
         overrides: ethers.Overrides = {}
-    ): Promise<ethers.ethers.ContractTransaction> {
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
         const trader = await this._getAddress();
@@ -124,7 +124,7 @@ export class SDK {
             type: types.TriggerType;
         },
         overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, price, size, type } = params;
 
         const trader = await this._getAddress();
@@ -154,7 +154,7 @@ export class SDK {
             slippagePercent?: number;
         },
         overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, closePercent: _closePercent, slippagePercent } = params;
 
         const closePercent = _closePercent ?? 100;
@@ -205,7 +205,7 @@ export class SDK {
             reduceOnly?: boolean;
         },
         overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
         const trader = await this._getAddress();
@@ -229,7 +229,10 @@ export class SDK {
      * @param id order id
      * @returns tx
      */
-    public async deleteLimitOrder(id: number, overrides: ethers.Overrides = {}): Promise<ethers.ContractTransaction> {
+    public async deleteLimitOrder(
+        id: number,
+        overrides: ethers.Overrides = {}
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.deleteLimitOrder(id, overrides);
     }
 
@@ -239,7 +242,10 @@ export class SDK {
      * @param amm amm eg bayc
      * @returns tx
      */
-    public async deleteTriggerOrder(id: string, overrides?: ethers.Overrides): Promise<ethers.ContractTransaction> {
+    public async deleteTriggerOrder(
+        id: number,
+        overrides: ethers.Overrides = {}
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.deleteTriggerOrder(id, overrides);
     }
 
@@ -252,8 +258,8 @@ export class SDK {
      */
     public async addMargin(
         params: { amm: types.Amm; amount: number },
-        overrides?: ethers.Overrides
-    ): Promise<ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {}
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, amount } = params;
         const { size } = await this.getPosition(amm);
         if (utils.big(size).eq(0)) {
@@ -274,8 +280,8 @@ export class SDK {
      */
     public async removeMargin(
         params: { amm: types.Amm; amount: number },
-        overrides?: ethers.Overrides
-    ): Promise<ethers.ContractTransaction> {
+        overrides: ethers.Overrides = {}
+    ): Promise<ethers.ContractTransactionResponse> {
         const { amm, amount } = params;
         const { size, trader } = await this.getPosition(amm);
         if (utils.big(size).eq(0)) {
@@ -608,7 +614,7 @@ export class SDK {
      * @returns allowance in `eth`
      */
     private async _getAllowance(): Promise<Big> {
-        return utils.fromWei(await this._weth.allowance(await this._getAddress(), this._ch.address));
+        return utils.fromWei(await this._weth.allowance(await this._getAddress(), await this._ch.getAddress()));
     }
 
     /**
@@ -616,7 +622,7 @@ export class SDK {
      * @returns hash
      */
     private async _maxApprove(): Promise<string> {
-        const tx = await this._weth.approve(this._ch.address, ethers.constants.MaxUint256);
+        const tx = await this._weth.approve(await this._ch.getAddress(), ethers.MaxUint256);
         return tx.hash;
     }
 
@@ -642,7 +648,7 @@ export class SDK {
         leverage: string,
         baseLimit: string,
         overrides: ethers.ethers.Overrides = {}
-    ): Promise<ethers.ethers.ContractTransaction> {
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.openPosition(amm, side, margin, leverage, baseLimit, overrides);
     }
 
@@ -650,7 +656,12 @@ export class SDK {
      * close position
      * @returns hash
      */
-    private async _closePosition(amm: string, size: string, quoteLimit: string, overrides: ethers.Overrides = {}) {
+    private async _closePosition(
+        amm: string,
+        size: string,
+        quoteLimit: string,
+        overrides: ethers.Overrides = {}
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.closePosition(amm, size, quoteLimit, overrides);
     }
 
@@ -662,7 +673,7 @@ export class SDK {
         amm: string,
         marginToAdd: string,
         overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.addMargin(amm, marginToAdd, overrides);
     }
 
@@ -674,7 +685,7 @@ export class SDK {
         amm: string,
         marginToRemove: string,
         overrides: ethers.Overrides = {}
-    ): Promise<ethers.ContractTransaction> {
+    ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.removeMargin(amm, marginToRemove, overrides);
     }
 
@@ -693,7 +704,7 @@ export class SDK {
             throw new Error("wallet has no provider attached");
         }
         const { chainId } = await wallet.provider.getNetwork();
-        if (chainId !== utils.getInstanceConfig(instance).chainId) {
+        if (Number(chainId) !== utils.getInstanceConfig(instance).chainId) {
             throw new Error("provider rpc and instance do not match");
         }
     }

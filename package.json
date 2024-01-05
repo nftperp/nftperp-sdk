@@ -8,7 +8,7 @@
         "build": "tsc",
         "start": "node dist/sdk.js",
         "prepare": "husky install",
-        "typechain": "typechain --target ethers-v5 --out-dir src/typechain-types 'src/abis/**/*.json'",
+        "typechain": "typechain --target ethers-v6 --out-dir src/typechain-types 'src/abis/**/*.json'",
         "postinstall": "npm run typechain"
     },
     "homepage": "https://github.com/nftperp/nftperp-sdk/#readme",
@@ -33,10 +33,10 @@
     "dependencies": {
         "axios": "^1.1.3",
         "big.js": "^6.2.1",
-        "ethers": "^5.6.9"
+        "ethers": "^6.9.2"
     },
     "devDependencies": {
-        "@typechain/ethers-v5": "^10.1.0",
+        "@typechain/ethers-v6": "^0.5.1",
         "@types/big.js": "^6.1.5",
         "@typescript-eslint/eslint-plugin": "^5.32.0",
         "@typescript-eslint/parser": "^5.32.0",

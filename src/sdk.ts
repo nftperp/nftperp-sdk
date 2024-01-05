@@ -50,7 +50,7 @@ export class SDK {
             slippagePercent?: number;
         },
         options?: { maxApprove?: boolean; skipChecks?: boolean },
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, margin, leverage, slippagePercent } = params;
 
@@ -68,7 +68,7 @@ export class SDK {
             utils.toWeiStr(margin),
             utils.toWeiStr(leverage),
             utils.toWeiStr(baseLimit),
-            overrides
+            overrides,
         );
     }
 
@@ -91,7 +91,7 @@ export class SDK {
             leverage: number;
             reduceOnly?: boolean;
         },
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
@@ -106,7 +106,7 @@ export class SDK {
                 leverage: utils.toWeiStr(leverage),
                 reduceOnly: !!reduceOnly,
             },
-            overrides
+            overrides,
         );
     }
 
@@ -126,7 +126,7 @@ export class SDK {
             size: number;
             type: types.TriggerType;
         },
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         const { amm, price, size, type } = params;
 
@@ -140,7 +140,7 @@ export class SDK {
                 quoteLimit: 0,
                 takeProfit: type === types.TriggerType.TAKE_PROFIT,
             },
-            overrides
+            overrides,
         );
     }
 
@@ -156,7 +156,7 @@ export class SDK {
             closePercent?: number;
             slippagePercent?: number;
         },
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         const { amm, closePercent: _closePercent, slippagePercent } = params;
 
@@ -174,14 +174,14 @@ export class SDK {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             side!,
             utils.big(summary.outputNotional),
-            slippagePercent
+            slippagePercent,
         );
 
         return this._closePosition(
             this._getAmmAddress(amm),
             utils.toWeiStr(utils.big(size).mul(closePercent).div(100).abs()),
             utils.toWeiStr(quoteAssetAmountLimit),
-            overrides
+            overrides,
         );
     }
 
@@ -207,7 +207,7 @@ export class SDK {
             leverage: number;
             reduceOnly?: boolean;
         },
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
@@ -223,7 +223,7 @@ export class SDK {
                 leverage: utils.toWeiStr(leverage),
                 reduceOnly: !!reduceOnly,
             },
-            overrides
+            overrides,
         );
     }
 
@@ -234,7 +234,7 @@ export class SDK {
      */
     public async deleteLimitOrder(
         id: number,
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.deleteLimitOrder(id, overrides);
     }
@@ -246,7 +246,7 @@ export class SDK {
      */
     public async deleteTriggerOrder(
         id: number,
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.deleteTriggerOrder(id, overrides);
     }
@@ -260,7 +260,7 @@ export class SDK {
      */
     public async addMargin(
         params: { amm: types.Amm; amount: number },
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         const { amm, amount } = params;
         const { size } = await this.getPosition(amm);
@@ -282,7 +282,7 @@ export class SDK {
      */
     public async removeMargin(
         params: { amm: types.Amm; amount: number },
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         const { amm, amount } = params;
         const { size, trader } = await this.getPosition(amm);
@@ -536,7 +536,7 @@ export class SDK {
      * Get supported Amms
      * @returns Amms
      */
-    public getSupportedAmms(instance: types.Instance): (keyof typeof types.Amm)[] {
+    public getSupportedAmms(instance = types.Instance.PAPER_TRADING): (keyof typeof types.Amm)[] {
         const { amms } = utils.getInstanceConfig(instance);
         return Object.keys(amms) as (keyof typeof types.Amm)[];
     }
@@ -631,7 +631,7 @@ export class SDK {
         margin: string,
         leverage: string,
         baseLimit: string,
-        overrides: ethers.ethers.Overrides = {}
+        overrides: ethers.ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.openPosition(amm, side, margin, leverage, baseLimit, overrides);
     }
@@ -644,7 +644,7 @@ export class SDK {
         amm: string,
         size: string,
         quoteLimit: string,
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.closePosition(amm, size, quoteLimit, overrides);
     }
@@ -656,7 +656,7 @@ export class SDK {
     private async _addMargin(
         amm: string,
         marginToAdd: string,
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.addMargin(amm, marginToAdd, overrides);
     }
@@ -668,7 +668,7 @@ export class SDK {
     private async _removeMargin(
         amm: string,
         marginToRemove: string,
-        overrides: ethers.Overrides = {}
+        overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         return this._ch.removeMargin(amm, marginToRemove, overrides);
     }

@@ -21,10 +21,9 @@ For any queries, join our discord [invite link](https://discord.gg/J5vUUcTE6F)
 npm i @nftperp/sdk
 ```
 
-**NOTE:** Make sure you have `ethers@5` installed. `ethers v6`, which will create errors when initialising the SDK
-
+_also install `ethers` library_
 ```sh
-npm i ethers@5
+npm i ethers
 ```
 
 ### Usage
@@ -34,15 +33,11 @@ npm i ethers@5
 ```ts
 import { ethers } from "ethers";
 import { SDK } from "@nftperp/sdk";
-import { Instance } from "@nftperp/sdk/types";
 
-/**
-the general rpc url for arb mainnet is "https://arb1.arbitrum.io/rpc"
-recommended using one from infura/alchemy
-*/
-const provider = new ethers.providers.JsonRpcProvider("<your-rpc-url>");
+
+const provider = new ethers.JsonRpcProvider("<your-rpc-url>");
 const wallet = new ethers.Wallet("<your-private-key>", provider);
-const nftperp = new SDK({ wallet, instance: Instance.PAPER_TRADING });
+const nftperp = new SDK({ wallet });
 ```
 
 #### Create a market order
@@ -61,9 +56,9 @@ const tx = await nftperp.openMarketOrder({
 _note_: _to get a list of supported amms do:_
 
 ```ts
-console.log(nftperp.getSupportedAmms(Instance.PAPER_TRADING));
+console.log(nftperp.getSupportedAmms());
 /**
-[ 'BAYC', 'PUNKS', '...' ]
+[ 'BAYC', 'MILADY', '...' ]
 */
 ```
 
@@ -72,7 +67,7 @@ console.log(nftperp.getSupportedAmms(Instance.PAPER_TRADING));
 ```ts
 import { Side } from "@nftperp/sdk/types";
 
-const tx = await nftperp.openLimitOrder({
+await nftperp.openLimitOrder({
     amm: AMM.BAYC,
     side: Side.SELL,
     price: 30,
@@ -84,15 +79,13 @@ const tx = await nftperp.openLimitOrder({
 #### Get postion
 
 ```ts
-const position = await nftperp.getPosition(Amm.BAYC);
+await nftperp.getPosition(Amm.BAYC);
 ```
 
 #### Create a trigger order (Stop loss/Take profit)
 
 ```ts
-import { Side, TriggerType } from "@nftperp/sdk/types";
-
-const hash = await nftperp.openTriggerOrder({
+await nftperp.openTriggerOrder({
     amm: Amm.BAYC,
     price: 20,
     size: 0.1 // in BAYC
@@ -103,15 +96,15 @@ const hash = await nftperp.openTriggerOrder({
 #### Close position
 
 ```ts
-const hash = await nftperp.closePosition({
-    amm: Amm.BAYC,
-});
+await nftperp.closePosition({ amm: Amm.BAYC });
 ```
 
 #### Calculate open summary
 
+> summary of entry price, price impact, fees etc to be implied on opening a position
+
 ```ts
-const summary = await nftperp.getOpenSummary({
+await nftperp.getOpenSummary({
     amm: Amm.BAYC,
     amount: 1,
     leverage: 1,
@@ -120,6 +113,8 @@ const summary = await nftperp.getOpenSummary({
 ```
 
 #### Calculate close summary
+
+> summary of exit price, price impact, fees etc to be implied on closing a position
 
 ```ts
 const summary = await nftperp.getCloseMarketSummary({ amm: Amm.BAYC });
@@ -137,10 +132,10 @@ const markPrice = await nftperp.getMarkPrice(Amm.BAYC);
 const indexPrice = await nftperp.getIndexPrice(Amm.BAYC);
 ```
 
-#### Get funding info
+#### Get funding rate
 
 ```ts
-const fundingInfo = await nftperp.getFundingInfo(Amm.BAYC);
+const fundingRate = await nftperp.getFundingRate(Amm.BAYC);
 ```
 
 #### Get historical trades

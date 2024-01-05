@@ -452,9 +452,9 @@ export class SDK {
      * @param amm amm eg bayc
      * @returns max leverage
      */
-    public async getMaxLeverage(amm: types.Amm): Promise<string> {
+    public async getMaxLeverage(amm: types.Amm): Promise<number> {
         const ammInfo = await this._api.ammInfo(amm);
-        return utils.stringify(utils.big(1).div(ammInfo.initMarginRatio));
+        return utils.numerify(utils.big(1).div(ammInfo.initMarginRatio));
     }
 
     /**
@@ -539,6 +539,14 @@ export class SDK {
     public getSupportedAmms(instance = types.Instance.PAPER_TRADING): (keyof typeof types.Amm)[] {
         const { amms } = utils.getInstanceConfig(instance);
         return Object.keys(amms) as (keyof typeof types.Amm)[];
+    }
+
+    /**
+     * Get contract addresses
+     * @returns Amms
+     */
+    public getContracts(instance = types.Instance.PAPER_TRADING): types.InstanceConfig {
+        return utils.getInstanceConfig(instance);
     }
 
     //

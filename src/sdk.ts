@@ -305,15 +305,6 @@ export class SDK {
     }
 
     /**
-     * Get all positions
-     * @returns all positions
-     */
-    public async getAllPositions(trader?: string): Promise<{ [key in types.Amm]: types.PositionResponse }> {
-        const positions = await this._api.positions(trader ?? (await this._getAddress()));
-        return positions;
-    }
-
-    /**
      * Get maker position
      * @param amm amm eg bayc
      * @returns position
@@ -498,15 +489,6 @@ export class SDK {
      */
     public async getAmmInfo(amm: types.Amm): Promise<types.AmmInfoResponse> {
         return this._api.ammInfo(amm);
-    }
-
-    /**
-     * Get all amm infos
-     * @returns amm Infos
-     */
-    public async getAllAmmInfos(): Promise<types.AmmInfosResponse> {
-        const ammInfos = await this._api.ammInfos();
-        return ammInfos;
     }
 
     /**

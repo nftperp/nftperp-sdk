@@ -2,32 +2,45 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.0.1](https://github.com/nftperp/nftperp-sdk/compare/v6.0.0...v6.0.1) (2024-01-11)
+
+### Bug Fixes
+
+-   **constructor:** make params fully optional ([b31ac80](https://github.com/nftperp/nftperp-sdk/commit/b31ac80eebffb9bcbdddcea8cb423867a77f736d))
+
+## [6.0.0](https://github.com/nftperp/nftperp-sdk/compare/v5.3.0...v6.0.0) (2024-01-11)
+
+### Features
+
+-   **constructor:** take rpc and priv key instead of ethers wallet instance ([ea45da8](https://github.com/nftperp/nftperp-sdk/commit/ea45da8935a8c75925ffaef152392742604077b3))
+
+### Bug Fixes
+
+-   **formatting:** fix lint-staged prettier task ([d46a8d8](https://github.com/nftperp/nftperp-sdk/commit/d46a8d80cbd2d291a381b6fb4479d11c9fd6583d))
+
 ## [5.3.0](https://github.com/nftperp/nftperp-sdk/compare/v5.2.0...v5.3.0) (2024-01-05)
 
 ## [5.2.0](https://github.com/nftperp/nftperp-sdk/compare/v5.1.0...v5.2.0) (2024-01-05)
 
-
 ### Features
 
-* **methods:** create, update and delete limit order batch ([dd9baf9](https://github.com/nftperp/nftperp-sdk/commit/dd9baf9b607a53cd600c8bf8ba8e10f254283821))
+-   **methods:** create, update and delete limit order batch ([dd9baf9](https://github.com/nftperp/nftperp-sdk/commit/dd9baf9b607a53cd600c8bf8ba8e10f254283821))
 
 ## [5.1.0](https://github.com/nftperp/nftperp-sdk/compare/v5.0.0...v5.1.0) (2024-01-05)
 
-
 ### Features
 
-* **method:** getContracts ([f07501c](https://github.com/nftperp/nftperp-sdk/commit/f07501c9a4a74fce726345ce4872291042210520))
+-   **method:** getContracts ([f07501c](https://github.com/nftperp/nftperp-sdk/commit/f07501c9a4a74fce726345ce4872291042210520))
 
 ## [5.0.0](https://github.com/nftperp/nftperp-sdk/compare/v4.3.0...v5.0.0) (2024-01-05)
 
-
 ### ⚠ BREAKING CHANGES
 
-* **client:** update to ethers v6
+-   **client:** update to ethers v6
 
 ### Features
 
-* **client:** update to ethers v6 ([97de669](https://github.com/nftperp/nftperp-sdk/commit/97de669a5852cd328817e995fb39eaf4ae68ac91))
+-   **client:** update to ethers v6 ([97de669](https://github.com/nftperp/nftperp-sdk/commit/97de669a5852cd328817e995fb39eaf4ae68ac91))
 
 ## [4.3.0](https://github.com/nftperp/nftperp-sdk/compare/v4.2.0...v4.3.0) (2023-11-22)
 

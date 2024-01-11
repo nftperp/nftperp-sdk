@@ -1,13 +1,9 @@
 import axios from "axios";
-import * as config from "../config";
+import config from "../config";
 import * as types from "../types";
 
 export class NftperpApis {
-    private readonly _baseUrl;
-
-    constructor(instance: types.Instance) {
-        this._baseUrl = config.config[instance].apiBaseUrl.replace(/$\//, ""); // trim trailing slash
-    }
+    private readonly _baseUrl = config.apiBaseUrl.replace(/$\//, ""); // trim trailing slash
 
     public readonly markPrice = async (amm: types.Amm): Promise<string> => {
         try {

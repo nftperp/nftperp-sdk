@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.0.1](https://github.com/nftperp/nftperp-sdk/compare/v6.0.0...v6.0.1) (2024-01-11)
+
+### Bug Fixes
+
+-   **constructor:** make params fully optional ([b31ac80](https://github.com/nftperp/nftperp-sdk/commit/b31ac80eebffb9bcbdddcea8cb423867a77f736d))
+
 ## [6.0.0](https://github.com/nftperp/nftperp-sdk/compare/v5.3.0...v6.0.0) (2024-01-11)
 
 ### Features

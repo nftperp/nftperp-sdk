@@ -21,11 +21,6 @@ For any queries, join our discord [invite link](https://discord.gg/J5vUUcTE6F)
 npm i @nftperp/sdk
 ```
 
-_also install `ethers` library_
-```sh
-npm i ethers
-```
-
 ### Usage
 
 #### Setup
@@ -34,10 +29,7 @@ npm i ethers
 import { ethers } from "ethers";
 import { SDK } from "@nftperp/sdk";
 
-
-const provider = new ethers.JsonRpcProvider("<your-rpc-url>");
-const wallet = new ethers.Wallet("<your-private-key>", provider);
-const nftperp = new SDK({ wallet });
+const nftperp = new SDK({ rpcUrl: "<your-rpc-url>", privateKey: "<your-private-key>" });
 ```
 
 #### Create a market order

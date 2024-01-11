@@ -406,6 +406,7 @@ export class SDK {
      * @returns position
      */
     public async getPosition(amm: types.Amm, trader?: string): Promise<types.PositionResponse> {
+        if (!this._wallet && !trader) throw new Error(`mising param: trader`);
         this._checkAmm(amm);
         return this._api.position(amm, trader ?? (await this._getAddress()));
     }

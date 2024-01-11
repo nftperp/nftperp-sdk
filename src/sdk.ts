@@ -19,12 +19,12 @@ export class SDK {
      * @param params.wallet ethers wallet class for signing txs
      * @param params.instance instance
      */
-    constructor(params: { rpcUrl: string; privateKey?: string }) {
-        const rpcUrl = params.rpcUrl ?? `https://arbitrum.llamarpc.com`;
+    constructor(params?: { rpcUrl?: string; privateKey?: string }) {
+        const rpcUrl = params?.rpcUrl ?? config.rpcUrl;
         this._provider = new ethers.JsonRpcProvider(rpcUrl);
         void this._validateRpcNetwork(this._provider);
 
-        if (params.privateKey) this._wallet = new ethers.Wallet(params.privateKey, this._provider);
+        if (params?.privateKey) this._wallet = new ethers.Wallet(params.privateKey, this._provider);
 
         const signerOrProvider = this._wallet ?? this._provider;
         const { ch, weth } = config.contracts;

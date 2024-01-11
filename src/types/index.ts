@@ -34,6 +34,7 @@ export enum TriggerType {
 }
 
 export type Config = {
+    rpcUrl: string;
     apiBaseUrl: string;
     apiWsUrl: string;
     chainId: number;

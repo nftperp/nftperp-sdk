@@ -3,6 +3,7 @@ import { Config } from "../types";
 const config: Config = {
     apiBaseUrl: "https://api.nftperp.xyz",
     apiWsUrl: "https://api.nftperp.xyz",
+    rpcUrl: "https://arbitrum.llamarpc.com",
     chainId: 42161,
     contracts: {
         ch: "0x965258f89b009b04c66415dD7aa0ABf10C94C75c",

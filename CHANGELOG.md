@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.0.0](https://github.com/nftperp/nftperp-sdk/compare/v5.3.0...v6.0.0) (2024-01-11)
+
+### Features
+
+-   **constructor:** take rpc and priv key instead of ethers wallet instance ([ea45da8](https://github.com/nftperp/nftperp-sdk/commit/ea45da8935a8c75925ffaef152392742604077b3))
+
+### Bug Fixes
+
+-   **formatting:** fix lint-staged prettier task ([d46a8d8](https://github.com/nftperp/nftperp-sdk/commit/d46a8d80cbd2d291a381b6fb4479d11c9fd6583d))
+
 ## [5.3.0](https://github.com/nftperp/nftperp-sdk/compare/v5.2.0...v5.3.0) (2024-01-05)
 
 ## [5.2.0](https://github.com/nftperp/nftperp-sdk/compare/v5.1.0...v5.2.0) (2024-01-05)

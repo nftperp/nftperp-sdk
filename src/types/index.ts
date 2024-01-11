@@ -18,10 +18,6 @@ export enum Side {
     SELL = "sell", // short
 }
 
-export enum Instance {
-    PAPER_TRADING = "PAPER_TRADING",
-}
-
 export enum Sort {
     ASC = "asc",
     DESC = "desc",
@@ -37,20 +33,18 @@ export enum TriggerType {
     TAKE_PROFIT = "TAKE_PROFIT",
 }
 
-export type InstanceConfig = {
+export type Config = {
     apiBaseUrl: string;
     apiWsUrl: string;
     chainId: number;
-    ch: string;
-    iF: string;
-    weth: string;
-    amms: {
-        [key in Amm]?: string;
+    contracts: {
+        ch: string;
+        iF: string;
+        weth: string;
+        amms: {
+            [key in Amm]: string;
+        };
     };
-};
-
-export type Config = {
-    [key in Instance]: InstanceConfig;
 };
 
 export type Order = {

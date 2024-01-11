@@ -1,10 +1,10 @@
 import { Config } from "../types";
 
-export const config: Config = {
-    PAPER_TRADING: {
-        apiBaseUrl: "https://api.nftperp.xyz",
-        apiWsUrl: "https://api.nftperp.xyz",
-        chainId: 42161,
+const config: Config = {
+    apiBaseUrl: "https://api.nftperp.xyz",
+    apiWsUrl: "https://api.nftperp.xyz",
+    chainId: 42161,
+    contracts: {
         ch: "0x965258f89b009b04c66415dD7aa0ABf10C94C75c",
         iF: "0xA024c85842F3Ad977f745D35C8f8fCd2F91dCCe9",
         weth: "0x0645669debc4cbbE5B3f7bE1C71029dfDC2f819B",
@@ -20,3 +20,5 @@ export const config: Config = {
         },
     },
 };
+
+export default config;

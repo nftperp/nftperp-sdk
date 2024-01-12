@@ -29,7 +29,8 @@ npm i @nftperp/sdk
 import { ethers } from "ethers";
 import { SDK } from "@nftperp/sdk";
 
-const nftperp = new SDK({ rpcUrl: "<your-rpc-url>", privateKey: "<your-private-key>" });
+const nftperp = new SDK({ rpcUrl, privateKey }); // ready to make trades ¬‿¬"
+const nftperp = new SDK(); // for read-only mode, uses general rpc
 ```
 
 #### Create a market order

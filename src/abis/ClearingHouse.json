@@ -30,6 +30,11 @@
                 "internalType": "address",
                 "name": "_orderCreator",
                 "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_whitelist",
+                "type": "address"
             }
         ],
         "stateMutability": "nonpayable",
@@ -38,6 +43,11 @@
     {
         "inputs": [],
         "name": "AMM_IS_ACTIVE",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "AlreadyInitialized",
         "type": "error"
     },
     {
@@ -112,6 +122,11 @@
     },
     {
         "inputs": [],
+        "name": "NO_POOL_IN_RANGE",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "NO_POSITION",
         "type": "error"
     },
@@ -172,6 +187,32 @@
     },
     {
         "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "contract IRouter",
+                "name": "amm",
+                "type": "address"
+            }
+        ],
+        "name": "AMMInvalidated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "contract IRouter",
+                "name": "amm",
+                "type": "address"
+            }
+        ],
+        "name": "AMMValidated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
         "inputs": [],
         "name": "Activated",
         "type": "event"
@@ -186,8 +227,64 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "divergenceCap",
+                "type": "uint256"
+            }
+        ],
+        "name": "DivergenceCapChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "payer",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "receiver",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "id",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "enum FeeType",
+                "name": "feeType",
+                "type": "uint8"
+            }
+        ],
+        "name": "FeeDistributed",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -237,7 +334,7 @@
             },
             {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -268,7 +365,7 @@
             },
             {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -286,7 +383,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },
@@ -330,7 +427,7 @@
         "inputs": [
             {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -339,18 +436,6 @@
                 "internalType": "address",
                 "name": "maker",
                 "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "liquidity",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "int256",
-                "name": "fundingPayment",
-                "type": "int256"
             }
         ],
         "name": "LiquidityAdded",
@@ -361,7 +446,7 @@
         "inputs": [
             {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -370,30 +455,6 @@
                 "internalType": "address",
                 "name": "trader",
                 "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "liquidity",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "int256",
-                "name": "sizeRemoved",
-                "type": "int256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "marginRemoved",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "feeRealized",
-                "type": "uint256"
             }
         ],
         "name": "LiquidityRemoved",
@@ -404,7 +465,7 @@
         "inputs": [
             {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -429,7 +490,7 @@
         "inputs": [
             {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -453,8 +514,21 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "minOrderbookMargin",
+                "type": "uint256"
+            }
+        ],
+        "name": "MinOrderbookMarginChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -518,7 +592,7 @@
         "inputs": [
             {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -539,6 +613,12 @@
                 "internalType": "int256",
                 "name": "size",
                 "type": "int256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "openNotional",
+                "type": "uint256"
             },
             {
                 "indexed": false,
@@ -572,36 +652,6 @@
             },
             {
                 "indexed": false,
-                "internalType": "uint256",
-                "name": "ifFee",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "ammFee",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "limitFee",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "liquidatorFee",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "keeperFee",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
                 "internalType": "enum TradeType",
                 "name": "tradeType",
                 "type": "uint8"
@@ -621,7 +671,7 @@
             },
             {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -652,7 +702,7 @@
             },
             {
                 "indexed": true,
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -670,7 +720,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },
@@ -707,32 +757,61 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
             {
-                "internalType": "uint256",
-                "name": "margin",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "leverage",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "minShares",
-                "type": "uint256"
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "index",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "margin",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "leverage",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct LiquidityAddData[]",
+                "name": "data",
+                "type": "tuple[]"
             }
         ],
         "name": "addLiquidity",
         "outputs": [
             {
-                "internalType": "uint256",
-                "name": "shares",
-                "type": "uint256"
+                "components": [
+                    {
+                        "internalType": "contract IPool",
+                        "name": "pool",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "shares",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "quote",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "base",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct LiquidityAddReturnData[]",
+                "name": "returnData",
+                "type": "tuple[]"
             }
         ],
         "stateMutability": "nonpayable",
@@ -741,7 +820,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -766,7 +845,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -834,7 +913,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },
@@ -890,7 +969,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },
@@ -946,7 +1025,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },
@@ -1029,7 +1108,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -1057,7 +1136,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             }
@@ -1089,6 +1168,30 @@
     {
         "inputs": [
             {
+                "internalType": "contract IRouter",
+                "name": "amm",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "trader",
+                "type": "address"
+            }
+        ],
+        "name": "getFreeCollateral",
+        "outputs": [
+            {
+                "internalType": "int256",
+                "name": "",
+                "type": "int256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "id",
                 "type": "uint256"
@@ -1104,7 +1207,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },
@@ -1158,7 +1261,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             }
@@ -1177,7 +1280,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -1228,7 +1331,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -1251,7 +1354,7 @@
                 "type": "int256"
             }
         ],
-        "stateMutability": "view",
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -1262,7 +1365,7 @@
                 "type": "address"
             },
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             }
@@ -1281,7 +1384,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             }
@@ -1332,7 +1435,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },
@@ -1373,7 +1476,7 @@
                 "type": "address"
             },
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             }
@@ -1392,7 +1495,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             }
@@ -1447,7 +1550,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -1490,7 +1593,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -1518,7 +1621,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -1541,7 +1644,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -1610,29 +1713,28 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "ownershipHandoverValidFor",
-        "outputs": [
-            {
-                "internalType": "uint64",
-                "name": "",
-                "type": "uint64"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
             {
-                "internalType": "uint256",
-                "name": "shares",
-                "type": "uint256"
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "index",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "shares",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct LiquidityRemoveData[]",
+                "name": "data",
+                "type": "tuple[]"
             },
             {
                 "internalType": "uint256",
@@ -1648,7 +1750,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -1719,7 +1821,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             },
@@ -1737,7 +1839,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IAMM",
+                "internalType": "contract IRouter",
                 "name": "amm",
                 "type": "address"
             }
@@ -1775,7 +1877,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },
@@ -1830,7 +1932,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },
@@ -1885,7 +1987,7 @@
                         "type": "address"
                     },
                     {
-                        "internalType": "contract IAMM",
+                        "internalType": "contract IRouter",
                         "name": "amm",
                         "type": "address"
                     },

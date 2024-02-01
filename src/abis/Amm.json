@@ -10,6 +10,11 @@
                 "internalType": "address",
                 "name": "_clearingHouse",
                 "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "_poolFactory",
+                "type": "address"
             }
         ],
         "stateMutability": "nonpayable",
@@ -17,12 +22,12 @@
     },
     {
         "inputs": [],
-        "name": "BAD_DEBT",
+        "name": "AlreadyInitialized",
         "type": "error"
     },
     {
         "inputs": [],
-        "name": "BASE_RESERVE_IS_ZERO",
+        "name": "BAD_DEBT",
         "type": "error"
     },
     {
@@ -37,12 +42,7 @@
     },
     {
         "inputs": [],
-        "name": "INSUFFICIENT_RESERVES",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "INSUFFICIENT_SHARES",
+        "name": "INSUFFICIENT_MARGIN",
         "type": "error"
     },
     {
@@ -67,12 +67,12 @@
     },
     {
         "inputs": [],
-        "name": "MAKER_LIQUIDATABLE",
+        "name": "LIQUIDATABLE",
         "type": "error"
     },
     {
         "inputs": [],
-        "name": "MAKER_NOT_LIQUIDATABLE",
+        "name": "NOT_ACTIVE_POOL",
         "type": "error"
     },
     {
@@ -82,7 +82,22 @@
     },
     {
         "inputs": [],
+        "name": "NOT_LIQUIDATABLE",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "NOT_LP",
+        "type": "error"
+    },
+    {
+        "inputs": [],
         "name": "NOT_POSITION_MANAGER",
+        "type": "error"
+    },
+    {
+        "inputs": [],
+        "name": "NO_POOL_IN_RANGE",
         "type": "error"
     },
     {
@@ -97,17 +112,7 @@
     },
     {
         "inputs": [],
-        "name": "OVER_MAX_BASE",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "OVER_MAX_QUOTE",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "OVER_TRADING_LIMIT",
+        "name": "POOL_ALREADY_SET",
         "type": "error"
     },
     {
@@ -117,47 +122,7 @@
     },
     {
         "inputs": [],
-        "name": "QUOTE_RESERVE_IS_ZERO",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "SANDWICH",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "UNDER_MIN_BASE",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "UNDER_MIN_QUOTE",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "UNDER_MIN_SHARES",
-        "type": "error"
-    },
-    {
-        "inputs": [],
         "name": "Unauthorized",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "ZERO_CLOSE",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "ZERO_LIQUIDITY",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "ZERO_OPEN",
         "type": "error"
     },
     {
@@ -177,6 +142,25 @@
         "anonymous": false,
         "inputs": [],
         "name": "Activated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "contract IPool",
+                "name": "newPool",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "newIndex",
+                "type": "uint256"
+            }
+        ],
+        "name": "ActivePoolChanged",
         "type": "event"
     },
     {
@@ -331,13 +315,31 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": true,
+                "internalType": "address",
+                "name": "maker",
+                "type": "address"
+            },
+            {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "ratio",
+                "name": "addedMargin",
                 "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "addedNotional",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256[]",
+                "name": "poolsIds",
+                "type": "uint256[]"
             }
         ],
-        "name": "MaintenanceMarginRatioChanged",
+        "name": "LiquidityAdded",
         "type": "event"
     },
     {
@@ -351,30 +353,69 @@
             },
             {
                 "indexed": false,
-                "internalType": "int256",
-                "name": "shareDelta",
-                "type": "int256"
-            },
-            {
-                "indexed": false,
                 "internalType": "uint256",
-                "name": "remainingShares",
+                "name": "removedMargin",
                 "type": "uint256"
             },
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "realizedFee",
+                "name": "removedNotional",
                 "type": "uint256"
             },
             {
                 "indexed": false,
-                "internalType": "int256",
-                "name": "fundingPayment",
-                "type": "int256"
+                "internalType": "uint256[]",
+                "name": "poolIds",
+                "type": "uint256[]"
             }
         ],
-        "name": "MakerPositionChanged",
+        "name": "LiquidityRemoved",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "ratio",
+                "type": "uint256"
+            }
+        ],
+        "name": "MaintenanceMarginRatioChanged",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "maxSize",
+                "type": "uint256"
+            }
+        ],
+        "name": "MaxSizeSet",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "contract IPool",
+                "name": "pool",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "id",
+                "type": "uint256"
+            }
+        ],
+        "name": "NewPool",
         "type": "event"
     },
     {
@@ -394,6 +435,19 @@
             }
         ],
         "name": "NewPriceSnapshot",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "openInterestCap",
+                "type": "uint256"
+            }
+        ],
+        "name": "OpenInterestCapSet",
         "type": "event"
     },
     {
@@ -446,12 +500,12 @@
         "inputs": [
             {
                 "indexed": false,
-                "internalType": "uint256",
-                "name": "ratio",
-                "type": "uint256"
+                "internalType": "address",
+                "name": "newPoolLogic",
+                "type": "address"
             }
         ],
-        "name": "PartialLiquidationRatioChanged",
+        "name": "PoolLogicContractChanged",
         "type": "event"
     },
     {
@@ -460,67 +514,17 @@
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "quoteReserve",
+                "name": "markPriceWeight",
                 "type": "uint256"
             },
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "baseReserve",
+                "name": "indexPriceWeight",
                 "type": "uint256"
             }
         ],
-        "name": "ReservesUpdated",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
-                "internalType": "enum Dir",
-                "name": "dirOfBase",
-                "type": "uint8"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "quoteAmount",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "baseAmount",
-                "type": "uint256"
-            }
-        ],
-        "name": "SwapClose",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": false,
-                "internalType": "enum Dir",
-                "name": "dirOfQuote",
-                "type": "uint8"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "quoteAmount",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "baseAmount",
-                "type": "uint256"
-            }
-        ],
-        "name": "SwapOpen",
+        "name": "PriceWeightsChanged",
         "type": "event"
     },
     {
@@ -542,11 +546,11 @@
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "ratio",
+                "name": "twapInterval",
                 "type": "uint256"
             }
         ],
-        "name": "TradeLimitRatioChanged",
+        "name": "TwapIntervalChanged",
         "type": "event"
     },
     {
@@ -557,36 +561,60 @@
                 "type": "address"
             },
             {
-                "internalType": "uint256",
-                "name": "margin",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "leverage",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "minShares",
-                "type": "uint256"
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "index",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "margin",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "leverage",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct LiquidityAddData[]",
+                "name": "liquidityAddData",
+                "type": "tuple[]"
             }
         ],
         "name": "addLiquidity",
         "outputs": [
             {
-                "internalType": "uint256",
-                "name": "shares",
-                "type": "uint256"
+                "components": [
+                    {
+                        "internalType": "contract IPool",
+                        "name": "pool",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "shares",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "quote",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "base",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct LiquidityAddReturnData[]",
+                "name": "returnData",
+                "type": "tuple[]"
             },
             {
                 "internalType": "uint256",
-                "name": "quoteAmount",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "baseAmount",
+                "name": "marginAdded",
                 "type": "uint256"
             }
         ],
@@ -624,6 +652,45 @@
         "name": "completeOwnershipHandover",
         "outputs": [],
         "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getAMMFee",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getActiveIndex",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getActivePool",
+        "outputs": [
+            {
+                "internalType": "contract IPool",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -672,37 +739,6 @@
             }
         ],
         "name": "getBaseValue",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "baseAmount",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getBounds",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getFeeGrowth",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -755,40 +791,8 @@
     },
     {
         "inputs": [],
-        "name": "getFeeRatiosTotalSupply",
+        "name": "getFluctuationLimitRatio",
         "outputs": [
-            {
-                "components": [
-                    {
-                        "internalType": "uint256",
-                        "name": "baseFeeRatio",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "ammFeeRatio",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "limitMakerFeeRatio",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "keeperFeeRatio",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "liquidationFeeRatio",
-                        "type": "uint256"
-                    }
-                ],
-                "internalType": "struct FeeRatios",
-                "name": "",
-                "type": "tuple"
-            },
             {
                 "internalType": "uint256",
                 "name": "",
@@ -799,12 +803,23 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "getFluctuationLimitRatio",
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "maker",
+                "type": "address"
+            }
+        ],
+        "name": "getFullMakerImpermanentPosition",
         "outputs": [
             {
+                "internalType": "int256",
+                "name": "size",
+                "type": "int256"
+            },
+            {
                 "internalType": "uint256",
-                "name": "",
+                "name": "openNotional",
                 "type": "uint256"
             }
         ],
@@ -895,25 +910,11 @@
                 "internalType": "address",
                 "name": "maker",
                 "type": "address"
-            }
-        ],
-        "name": "getMakerFundingPayment",
-        "outputs": [
+            },
             {
-                "internalType": "int256",
-                "name": "fundingPayment",
-                "type": "int256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "maker",
-                "type": "address"
+                "internalType": "uint256[]",
+                "name": "poolIndexes",
+                "type": "uint256[]"
             }
         ],
         "name": "getMakerImpermanentPosition",
@@ -940,13 +941,62 @@
                 "type": "address"
             }
         ],
-        "name": "getMakerPosition",
+        "name": "getMakerPools",
         "outputs": [
+            {
+                "internalType": "contract IPool[]",
+                "name": "",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "maker",
+                "type": "address"
+            }
+        ],
+        "name": "getMakerPositionData",
+        "outputs": [
+            {
+                "internalType": "int256",
+                "name": "size",
+                "type": "int256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "openNotional",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "margin",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "pendingFees",
+                "type": "uint256"
+            },
+            {
+                "internalType": "int256",
+                "name": "pendingFundingPayment",
+                "type": "int256"
+            },
             {
                 "components": [
                     {
+                        "internalType": "contract IPool",
+                        "name": "pool",
+                        "type": "address"
+                    },
+                    {
                         "internalType": "uint256",
-                        "name": "margin",
+                        "name": "shares",
                         "type": "uint256"
                     },
                     {
@@ -958,49 +1008,40 @@
                         "internalType": "uint256",
                         "name": "base",
                         "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "shares",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "int256",
-                        "name": "position",
-                        "type": "int256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "lastFeeGrowth",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "fees",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "int256",
-                        "name": "lastPremiumFraction",
-                        "type": "int256"
-                    },
-                    {
-                        "internalType": "int256",
-                        "name": "lastPremiumFractionPerShare",
-                        "type": "int256"
-                    },
-                    {
-                        "internalType": "int256",
-                        "name": "lastSizeOffsetPerShare",
-                        "type": "int256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "blockNumber",
-                        "type": "uint256"
                     }
                 ],
-                "internalType": "struct MakerPosition",
+                "internalType": "struct PoolPosition[]",
+                "name": "poolInfo",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "maker",
+                "type": "address"
+            }
+        ],
+        "name": "getMakerProfile",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "margin",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "contract IPool[]",
+                        "name": "pools",
+                        "type": "address[]"
+                    }
+                ],
+                "internalType": "struct MakerProfile",
                 "name": "",
                 "type": "tuple"
             }
@@ -1051,7 +1092,7 @@
         "outputs": [
             {
                 "internalType": "uint256",
-                "name": "",
+                "name": "markPriceAfter",
                 "type": "uint256"
             }
         ],
@@ -1075,7 +1116,7 @@
         "outputs": [
             {
                 "internalType": "uint256",
-                "name": "",
+                "name": "markPriceAfter",
                 "type": "uint256"
             }
         ],
@@ -1154,12 +1195,18 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "getPartialLiquidationRatio",
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "maker",
+                "type": "address"
+            }
+        ],
+        "name": "getPendingMakerFees",
         "outputs": [
             {
                 "internalType": "uint256",
-                "name": "",
+                "name": "totalFees",
                 "type": "uint256"
             }
         ],
@@ -1174,12 +1221,44 @@
                 "type": "address"
             }
         ],
-        "name": "getPendingMakerFees",
+        "name": "getPendingMakerFundingPayment",
         "outputs": [
             {
+                "internalType": "int256",
+                "name": "fundingPayment",
+                "type": "int256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
-                "name": "",
+                "name": "_index",
                 "type": "uint256"
+            }
+        ],
+        "name": "getPool",
+        "outputs": [
+            {
+                "internalType": "contract IPool",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getPoolsInRange",
+        "outputs": [
+            {
+                "internalType": "contract IPool[]",
+                "name": "",
+                "type": "address[]"
             }
         ],
         "stateMutability": "view",
@@ -1239,65 +1318,7 @@
         "outputs": [
             {
                 "internalType": "uint256",
-                "name": "quoteAmount",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getRatios",
-        "outputs": [
-            {
-                "components": [
-                    {
-                        "internalType": "uint256",
-                        "name": "baseFeeRatio",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "initMarginRatio",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "maintenanceMarginRatio",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "partialLiquidationRatio",
-                        "type": "uint256"
-                    },
-                    {
-                        "internalType": "uint256",
-                        "name": "liquidationFeeRatio",
-                        "type": "uint256"
-                    }
-                ],
-                "internalType": "struct Ratios",
                 "name": "",
-                "type": "tuple"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getRealReserves",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "quoteReserve",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "baseReserve",
                 "type": "uint256"
             }
         ],
@@ -1324,80 +1345,7 @@
     },
     {
         "inputs": [],
-        "name": "getReservesAndK",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "quoteReserve",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "baseReserve",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_k",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "shares",
-                "type": "uint256"
-            }
-        ],
-        "name": "getShareValue",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "quote",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "base",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
         "name": "getTickSpacing",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getTotalSupply",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getTradeLimitRatio",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -1536,7 +1484,7 @@
         "outputs": [
             {
                 "internalType": "bool",
-                "name": "liquidatable",
+                "name": "",
                 "type": "bool"
             }
         ],
@@ -1606,12 +1554,12 @@
     },
     {
         "inputs": [],
-        "name": "ownershipHandoverValidFor",
+        "name": "poolFactory",
         "outputs": [
             {
-                "internalType": "uint64",
+                "internalType": "contract IPoolFactory",
                 "name": "",
-                "type": "uint64"
+                "type": "address"
             }
         ],
         "stateMutability": "view",
@@ -1638,9 +1586,21 @@
                 "type": "address"
             },
             {
-                "internalType": "uint256",
-                "name": "shares",
-                "type": "uint256"
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "index",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "shares",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct LiquidityRemoveData[]",
+                "name": "liquidityRemoveData",
+                "type": "tuple[]"
             }
         ],
         "name": "removeLiquidity",
@@ -1657,7 +1617,7 @@
             },
             {
                 "internalType": "uint256",
-                "name": "marginToRemove",
+                "name": "marginRemoved",
                 "type": "uint256"
             }
         ],
@@ -1713,42 +1673,6 @@
             }
         ],
         "name": "setBaseFeeRatio",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "upper",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "lower",
-                "type": "uint256"
-            }
-        ],
-        "name": "setBounds",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_maxSize",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "_openInterestNotionalCap",
-                "type": "uint256"
-            }
-        ],
-        "name": "setCap",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -1874,12 +1798,78 @@
         "inputs": [
             {
                 "internalType": "uint256",
-                "name": "_partialLiquidationRatio",
+                "name": "_openInterestNotionalCap",
                 "type": "uint256"
             }
         ],
-        "name": "setPartialLiquidationRatio",
+        "name": "setOpenInterestCap",
         "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_poolLogic",
+                "type": "address"
+            }
+        ],
+        "name": "setPoolLogicContract",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "upperBound",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "lowerBound",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct PoolParams[]",
+                "name": "poolsToSet",
+                "type": "tuple[]"
+            },
+            {
+                "internalType": "uint256",
+                "name": "activeID",
+                "type": "uint256"
+            }
+        ],
+        "name": "setPools",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "id",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "contract IPool",
+                        "name": "pool",
+                        "type": "address"
+                    }
+                ],
+                "internalType": "struct Pool[]",
+                "name": "poolsCreated",
+                "type": "tuple[]"
+            }
+        ],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -1892,19 +1882,6 @@
             }
         ],
         "name": "setTickSpacing",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_tradeLimitRatio",
-                "type": "uint256"
-            }
-        ],
-        "name": "setTradeLimitRatio",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -1933,7 +1910,7 @@
             },
             {
                 "internalType": "uint256",
-                "name": "markPrice",
+                "name": "mark",
                 "type": "uint256"
             },
             {

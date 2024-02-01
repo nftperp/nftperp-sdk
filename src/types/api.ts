@@ -39,15 +39,14 @@ export type PositionResponse = {
 export type MakerPositionResponse = {
     amm: string;
     trader: string;
-    liquidity: string;
+    totalLiquidity: string;
+    userLiquidity: string;
+    return30d: string;
+    pools?: { index: number; shares: string }[];
     margin?: string;
-    quote?: string;
-    base?: string;
+    position?: string;
     fees?: string;
     fundingPayment?: string;
-    quoteReserve: string;
-    baseReserve: string;
-    return30d: string;
 };
 
 export type ReserveResponse = {
@@ -134,16 +133,18 @@ export interface MarketTrade extends TxInfo {
     trader: string;
     margin: string;
     size: string;
+    openNotional: string;
     exchangedQuote: string;
     exchangedBase: string;
     realizedPnl: string;
     fundingPayment: string;
     markPrice: string;
-    liquidationPenalty: string;
+    tradeType: number;
     ifFee: string;
     ammFee: string;
     limitFee: string;
     keeperFee: string;
+    liquidatorFee: string;
 }
 
 export interface ProcessedPositionChangedEvent extends TxInfo {
@@ -170,7 +171,6 @@ export interface ProcessedFundingPaymentEvent extends TxInfo {
     indexPrice: string;
     premiumFraction: string;
     fundingRate: string;
-    insuranceFundPnl: string;
 }
 
 export interface ProcessedMarginChangedEvent extends TxInfo {
@@ -189,6 +189,7 @@ export type TradeApiParams = {
     sort?: types.Sort;
     page?: number;
     pageSize?: number;
+    hash?: string;
 };
 
 export type FundingApiParams = {

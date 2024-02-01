@@ -1,23 +1,16 @@
 import { Config } from "../types";
 
 const config: Config = {
-    apiBaseUrl: "https://api.nftperp.xyz",
-    apiWsUrl: "https://api.nftperp.xyz",
+    apiBaseUrl: "https://api2.nftperp.xyz",
+    apiWsUrl: "wss://api2.nftperp.xyz",
     rpcUrl: "https://arbitrum.llamarpc.com",
     chainId: 42161,
     contracts: {
-        ch: "0x965258f89b009b04c66415dD7aa0ABf10C94C75c",
-        iF: "0xA024c85842F3Ad977f745D35C8f8fCd2F91dCCe9",
-        weth: "0x0645669debc4cbbE5B3f7bE1C71029dfDC2f819B",
+        ch: "0x9e8B6D29C0410B8c7E67bB151CA7C0f9F6cBa8bF",
+        iF: "0x087E8C29d0743120A9b9d003F702FB7F450291ba",
+        weth: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
         amms: {
-            bayc: "0xD4F42D2AbdabDF62eD480F5C943181588FD11116",
-            milady: "0x54a70F5A105a3051338a72320E58Bc88fAAa8e49",
-            ppg: "0x51874D88F4C182713a36c972EF97B345ad3dFdfa",
-            cdb: "0x7942Cb4732fa3F3B3dfcc0290414b0067C4f1Dd1",
-            cap: "0x4DE38c2c1F5c315BAf84B0fbbFd08387872e55Dc",
-            sproto: "0xdb76b237755257339c1243542DfF7766a76dD486",
-            sofa: "0x7c2102982fCA04721611069816e170952c777E6F",
-            degods: "0xC63954Ee8bAf4f21Bc298bb61c5EdfDA725A46aA",
+            milady: "0x66945724757a91199AB0B0c77EcBB90abA897F75",
         },
     },
 };

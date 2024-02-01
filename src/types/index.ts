@@ -3,14 +3,7 @@ export * from "../typechain-types";
 
 // declare assets here
 export enum Amm {
-    BAYC = "bayc",
     MILADY = "milady",
-    PPG = "ppg",
-    CDB = "cdb",
-    CAP = "cap",
-    SPROTO = "sproto",
-    SOFA = "sofa",
-    DEGODS = "degods",
 }
 
 export enum Side {
@@ -48,13 +41,26 @@ export type Config = {
     };
 };
 
-export type Order = {
+export type LimitOrder = {
     id: number;
     amm: Amm;
     trader: string;
-    price: number;
-    size: number;
+    price: string;
+    size: string;
+    side: string;
+    timestamp: number;
+    margin: string;
+    reduceOnly: boolean;
+};
+
+export type TriggerOrder = {
+    id: number;
+    takeProfit: boolean;
     side: number;
+    amm: Amm;
+    trader: string;
+    trigger: string;
+    size: string;
     timestamp: number;
 };
 

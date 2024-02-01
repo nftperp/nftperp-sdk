@@ -29,7 +29,8 @@ npm i @nftperp/sdk
 import { ethers } from "ethers";
 import { SDK } from "@nftperp/sdk";
 
-const nftperp = new SDK({ rpcUrl: "<your-rpc-url>", privateKey: "<your-private-key>" });
+const nftperp = new SDK({ rpcUrl, privateKey }); // ready to make trades ¬‿¬"
+const nftperp = new SDK(); // for read-only mode, uses general rpc
 ```
 
 #### Create a market order
@@ -43,15 +44,6 @@ const tx = await nftperp.openMarketOrder({
     margin: 0.1, // in eth
     leverage: 3,
 });
-```
-
-_note_: _to get a list of supported amms do:_
-
-```ts
-console.log(nftperp.getSupportedAmms());
-/**
-[ 'BAYC', 'MILADY', '...' ]
-*/
 ```
 
 #### Create a limit order

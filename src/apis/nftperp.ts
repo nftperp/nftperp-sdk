@@ -229,11 +229,11 @@ export class NftperpApis {
         }
     };
 
-    public readonly orders = async (amm: types.Amm, trader?: string): Promise<types.Order[]> => {
+    public readonly orders = async (amm: types.Amm, trader?: string): Promise<types.LimitOrder[]> => {
         try {
             const url = `${this._baseUrl}/orders`;
             const { data } = await axios.get<{
-                data: types.Order[];
+                data: types.LimitOrder[];
             }>(url, { params: { amm, trader } });
             return data.data;
             /* eslint-disable */
@@ -243,11 +243,11 @@ export class NftperpApis {
         }
     };
 
-    public readonly triggerOrders = async (amm: types.Amm, trader: string): Promise<types.Order[]> => {
+    public readonly triggerOrders = async (amm: types.Amm, trader: string): Promise<types.TriggerOrder[]> => {
         try {
             const url = `${this._baseUrl}/orders/trigger`;
             const { data } = await axios.get<{
-                data: types.Order[];
+                data: types.TriggerOrder[];
             }>(url, { params: { amm, trader } });
             return data.data;
             /* eslint-disable */

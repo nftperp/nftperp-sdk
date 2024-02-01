@@ -426,7 +426,7 @@ export class SDK {
      * Get all limit orders
      * @returns all orders
      */
-    public async getLimitOrders(amm: types.Amm, trader?: string): Promise<types.Order[]> {
+    public async getLimitOrders(amm: types.Amm, trader?: string): Promise<types.LimitOrder[]> {
         if (!this._wallet && !trader) throw new Error(`mising param: trader`);
         this._checkAmm(amm);
         return this._api.orders(amm, trader);
@@ -436,7 +436,7 @@ export class SDK {
      * Get trigger orders
      * @returns all trigger orders
      */
-    public async getTriggerOrders(amm: types.Amm, trader?: string): Promise<types.Order[]> {
+    public async getTriggerOrders(amm: types.Amm, trader?: string): Promise<types.TriggerOrder[]> {
         if (!this._wallet && !trader) throw new Error(`mising param: trader`);
         this._checkAmm(amm);
         return await this._api.triggerOrders(amm, trader ?? (await this._getAddress()));

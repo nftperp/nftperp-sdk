@@ -46,15 +46,6 @@ const tx = await nftperp.openMarketOrder({
 });
 ```
 
-_note_: _to get a list of supported amms do:_
-
-```ts
-console.log(nftperp.getSupportedAmms());
-/**
-[ 'BAYC', 'MILADY', '...' ]
-*/
-```
-
 #### Create a limit order
 
 ```ts

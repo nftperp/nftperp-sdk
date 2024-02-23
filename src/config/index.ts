@@ -1,8 +1,8 @@
 import { Config } from "../types";
 
 const config: Config = {
-    apiBaseUrl: "https://api2.nftperp.xyz",
-    apiWsUrl: "wss://api2.nftperp.xyz",
+    apiBaseUrl: "https://live.nftperp.xyz",
+    apiWsUrl: "wss://live.nftperp.xyz",
     rpcUrl: "https://arbitrum.llamarpc.com",
     chainId: 42161,
     contracts: {
@@ -11,6 +11,7 @@ const config: Config = {
         weth: "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
         amms: {
             milady: "0x66945724757a91199AB0B0c77EcBB90abA897F75",
+            ppg: "0xd28485258d6926B81602b84CACF43BA99ACf93a5",
         },
     },
 };

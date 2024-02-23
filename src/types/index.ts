@@ -4,6 +4,7 @@ export * from "../typechain-types";
 // declare assets here
 export enum Amm {
     MILADY = "milady",
+    PPG = "ppg",
 }
 
 export enum Side {

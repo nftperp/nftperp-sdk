@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.1.0](https://github.com/nftperp/nftperp-sdk/compare/v7.0.0...v7.1.0) (2024-02-23)
+
+### Bug Fixes
+
+-   **config:** api url and add ppg amm ([4b7bb7b](https://github.com/nftperp/nftperp-sdk/commit/4b7bb7bb0fd288e8ee8c76159f1fccf2bed3001e))
+
 ## [7.0.0](https://github.com/nftperp/nftperp-sdk/compare/v6.0.2...v7.0.0) (2024-02-01)
 
 ### [6.0.2](https://github.com/nftperp/nftperp-sdk/compare/v6.0.1...v6.0.2) (2024-01-11)

@@ -8,7 +8,7 @@ import * as apis from "./apis";
 
 export class SDK {
     private readonly _provider: ethers.Provider;
-    private readonly _wallet?: ethers.Wallet;
+    public readonly wallet?: ethers.Wallet;
 
     private readonly _ch: types.ClearingHouse;
     private readonly _weth: types.ERC20;
@@ -24,9 +24,9 @@ export class SDK {
         this._provider = new ethers.JsonRpcProvider(rpcUrl);
         void this._validateRpcNetwork(this._provider);
 
-        if (params?.privateKey) this._wallet = new ethers.Wallet(params.privateKey, this._provider);
+        if (params?.privateKey) this.wallet = new ethers.Wallet(params.privateKey, this._provider);
 
-        const signerOrProvider = this._wallet ?? this._provider;
+        const signerOrProvider = this.wallet ?? this._provider;
         const { ch, weth } = config.contracts;
         this._ch = new ethers.Contract(ch, abis.clearingHouse, signerOrProvider) as unknown as types.ClearingHouse;
         this._weth = new ethers.Contract(weth, abis.erc20, signerOrProvider) as unknown as types.ERC20;
@@ -94,12 +94,17 @@ export class SDK {
             leverage: number;
             reduceOnly?: boolean;
         },
+        options?: { maxApprove?: boolean; skipChecks?: boolean },
         overrides: ethers.Overrides = {},
     ): Promise<ethers.ContractTransactionResponse> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
         this._checkWallet();
         this._checkAmm(amm);
+        if (!options?.skipChecks) {
+            await this._checkBalance(utils.big(margin));
+            await this._checkAllowance(utils.big(margin), options?.maxApprove);
+        }
         const trader = await this._getAddress();
         return this._ch.createLimitOrder(
             {
@@ -400,13 +405,24 @@ export class SDK {
         return this._removeMargin(this._getAmmAddress(amm), utils.toWeiStr(amount), overrides);
     }
 
+    public async approve(params: {
+        amount?: number | string;
+        max?: boolean;
+    }): Promise<ethers.ContractTransactionResponse> {
+        const { amount, max } = params;
+        if (!amount && !max) {
+            throw new Error("specify either amount or max option");
+        }
+        return this._approve(utils.toWeiStr(amount || 0), !!max);
+    }
+
     /**
      * Get position
      * @param amm amm eg bayc
      * @returns position
      */
     public async getPosition(amm: types.Amm, trader?: string): Promise<types.PositionResponse> {
-        if (!this._wallet && !trader) throw new Error(`mising param: trader`);
+        if (!this.wallet && !trader) throw new Error(`mising param: trader`);
         this._checkAmm(amm);
         return this._api.position(amm, trader ?? (await this._getAddress()));
     }
@@ -417,7 +433,7 @@ export class SDK {
      * @returns position
      */
     public async getMakerPosition(amm: types.Amm, trader?: string): Promise<types.MakerPositionResponse> {
-        if (!this._wallet && !trader) throw new Error(`mising param: trader`);
+        if (!this.wallet && !trader) throw new Error(`mising param: trader`);
         this._checkAmm(amm);
         return this._api.makerPosition(amm, trader ?? (await this._getAddress()));
     }
@@ -427,7 +443,7 @@ export class SDK {
      * @returns all orders
      */
     public async getLimitOrders(amm: types.Amm, trader?: string): Promise<types.LimitOrder[]> {
-        if (!this._wallet && !trader) throw new Error(`mising param: trader`);
+        if (!this.wallet && !trader) throw new Error(`mising param: trader`);
         this._checkAmm(amm);
         return this._api.orders(amm, trader);
     }
@@ -437,7 +453,7 @@ export class SDK {
      * @returns all trigger orders
      */
     public async getTriggerOrders(amm: types.Amm, trader?: string): Promise<types.TriggerOrder[]> {
-        if (!this._wallet && !trader) throw new Error(`mising param: trader`);
+        if (!this.wallet && !trader) throw new Error(`mising param: trader`);
         this._checkAmm(amm);
         return await this._api.triggerOrders(amm, trader ?? (await this._getAddress()));
     }
@@ -456,7 +472,7 @@ export class SDK {
      * @returns balances
      */
     public async getBalances(trader?: string): Promise<types.BalancesResponse> {
-        if (!this._wallet && !trader) throw new Error(`mising param: trader`);
+        if (!this.wallet && !trader) throw new Error(`mising param: trader`);
         return this._api.balances(trader ?? (await this._getAddress()));
     }
 
@@ -537,7 +553,7 @@ export class SDK {
      * @returns upnl in `eth`
      */
     public async getUpnl(amm: types.Amm, trader?: string): Promise<string> {
-        if (!this._wallet && !trader) throw new Error(`mising param: trader`);
+        if (!this.wallet && !trader) throw new Error(`mising param: trader`);
         this._checkAmm(amm);
         const { size, unrealizedPnl } = await this._api.position(amm, trader ?? (await this._getAddress()));
         if (utils.big(size).eq(0)) {
@@ -569,7 +585,7 @@ export class SDK {
      * @returns liquidation price in `eth`
      */
     public async getLiquidationPrice(amm: types.Amm, trader?: string): Promise<string> {
-        if (!this._wallet && !trader) throw new Error(`mising param: trader`);
+        if (!this.wallet && !trader) throw new Error(`mising param: trader`);
         this._checkAmm(amm);
         const { size, liquidationPrice } = await this._api.position(amm, trader ?? (await this._getAddress()));
         if (utils.big(size).eq(0)) {
@@ -760,12 +776,12 @@ export class SDK {
     }
 
     /**
-     * sets max approval on clearing house
-     * @returns hash
+     * sets approval on clearing house
+     * @returns tx
      */
-    private async _approve(amount: string, maxApprove: boolean): Promise<string> {
+    private async _approve(amount: string, maxApprove: boolean): Promise<ethers.ContractTransactionResponse> {
         const tx = await this._weth.approve(await this._ch.getAddress(), maxApprove ? ethers.MaxUint256 : amount);
-        return tx.hash;
+        return tx;
     }
 
     /**
@@ -841,7 +857,7 @@ export class SDK {
      * get signer address
      */
     private async _getAddress(): Promise<string> {
-        const addy = this._wallet!.address ?? (await this._wallet!.getAddress());
+        const addy = this.wallet!.address ?? (await this.wallet!.getAddress());
         if (!addy) throw new Error("signer has no address attached");
         return addy;
     }
@@ -860,7 +876,7 @@ export class SDK {
      * check wallet exists for write
      */
     private _checkWallet() {
-        if (!this._wallet) {
+        if (!this.wallet) {
             throw new Error(`sdk initialized as read-only, as private key is not provided`);
         }
     }

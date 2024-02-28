@@ -101,7 +101,7 @@ export class SDK {
 
         this._checkWallet();
         this._checkAmm(amm);
-        if (!options?.skipChecks) {
+        if (!options?.skipChecks && !reduceOnly) {
             await this._checkBalance(utils.big(margin));
             await this._checkAllowance(utils.big(margin), options?.maxApprove);
         }

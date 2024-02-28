@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.1.2](https://github.com/nftperp/nftperp-sdk/compare/v7.1.1...v7.1.2) (2024-02-28)
+
+### Bug Fixes
+
+-   **createLimitOrder:** skip checks if reduce only ([6b55106](https://github.com/nftperp/nftperp-sdk/commit/6b551060840acde6ce548cdc90b42f489bc264b2))
+
 ### [7.1.1](https://github.com/nftperp/nftperp-sdk/compare/v7.1.0...v7.1.1) (2024-02-28)
 
 ## [7.1.0](https://github.com/nftperp/nftperp-sdk/compare/v7.0.0...v7.1.0) (2024-02-23)

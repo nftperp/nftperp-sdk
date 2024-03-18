@@ -1,35 +1,72 @@
 import Big from "big.js";
-import abis from "./abis";
-import config from "./config";
-import * as ethers from "ethers";
+import * as config from "./config";
+import * as web3 from "./web3";
 import * as types from "./types";
 import * as utils from "./utils";
 import * as apis from "./apis";
 
 export class SDK {
-    private readonly _provider: ethers.Provider;
-    public readonly wallet?: ethers.Wallet;
-
-    private readonly _ch: types.ClearingHouse;
-    private readonly _weth: types.ERC20;
-
+    public readonly wallet?: web3.Wallet;
+    public readonly wallet_blast?: web3.Wallet;
+    // contract instances
+    public readonly clearingHouse: types.ClearingHouse;
+    public readonly clearingHouse_blast: types.ClearingHouse;
+    public readonly insuranceFund: types.InsuranceFund;
+    public readonly insuranceFund_blast: types.InsuranceFund;
+    public readonly weth: types.ERC20;
+    public readonly weth_blast: types.ERC20;
+    // api instance
     private readonly _api: apis.NftperpApis;
     /**
      * @param params params for initing sdk
-     * @param params.wallet ethers wallet class for signing txs
+     * @param params.wallet web3 wallet class for signing txs
      * @param params.instance instance
      */
-    constructor(params?: { rpcUrl?: string; privateKey?: string }) {
-        const rpcUrl = params?.rpcUrl ?? config.rpcUrl;
-        this._provider = new ethers.JsonRpcProvider(rpcUrl);
-        void this._validateRpcNetwork(this._provider);
+    constructor(params?: { rpcUrl?: string; rpcUrl_blast?: string; privateKey?: string }) {
+        void this._validateRpcNetwork({ network: `arb`, rpcUrl: params?.rpcUrl });
+        void this._validateRpcNetwork({ network: `blast`, rpcUrl: params?.rpcUrl_blast });
 
-        if (params?.privateKey) this.wallet = new ethers.Wallet(params.privateKey, this._provider);
+        if (params?.privateKey) {
+            this.wallet = new web3.Wallet(
+                params.privateKey,
+                web3.getProvider({ network: `arb`, rpcUrl: params?.rpcUrl }),
+            );
+            this.wallet_blast = new web3.Wallet(
+                params.privateKey,
+                web3.getProvider({ network: `blast`, rpcUrl: params?.rpcUrl_blast }),
+            );
+        }
 
-        const signerOrProvider = this.wallet ?? this._provider;
-        const { ch, weth } = config.contracts;
-        this._ch = new ethers.Contract(ch, abis.clearingHouse, signerOrProvider) as unknown as types.ClearingHouse;
-        this._weth = new ethers.Contract(weth, abis.erc20, signerOrProvider) as unknown as types.ERC20;
+        this.clearingHouse = web3.getClearingHouseInstance({
+            network: `arb`,
+            rpcUrl: params?.rpcUrl,
+            wallet: this.wallet,
+        });
+        this.clearingHouse_blast = web3.getClearingHouseInstance({
+            network: `blast`,
+            rpcUrl: params?.rpcUrl_blast,
+            wallet: this.wallet_blast,
+        });
+        this.insuranceFund = web3.getInsuranceFundInstance({
+            network: `arb`,
+            rpcUrl: params?.rpcUrl,
+            wallet: this.wallet,
+        });
+        this.insuranceFund_blast = web3.getInsuranceFundInstance({
+            network: `blast`,
+            rpcUrl: params?.rpcUrl_blast,
+            wallet: this.wallet_blast,
+        });
+        this.weth = web3.getWethInstance({
+            network: `arb`,
+            rpcUrl: params?.rpcUrl,
+            wallet: this.wallet,
+        });
+        this.weth_blast = web3.getWethInstance({
+            network: `blast`,
+            rpcUrl: params?.rpcUrl_blast,
+            wallet: this.wallet_blast,
+        });
 
         this._api = new apis.NftperpApis();
     }
@@ -52,21 +89,26 @@ export class SDK {
             slippagePercent?: number;
         },
         options?: { maxApprove?: boolean; skipChecks?: boolean },
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
         const { amm, side, margin, leverage, slippagePercent } = params;
 
-        this._checkWallet();
         this._checkAmm(amm);
+        this._checkWallet();
+        const network = utils.getNetworkFromAmmName(amm);
         const summary = await this._api.openSummary({ amm, margin, leverage, side });
         if (!options?.skipChecks) {
-            await this._checkBalance(utils.big(summary.totalCost));
-            await this._checkAllowance(utils.big(summary.totalCost), options?.maxApprove);
+            await this._checkBalance({ amount: utils.big(summary.totalCost), network });
+            await this._checkAllowance({
+                amount: utils.big(summary.totalCost),
+                network,
+                maxApprove: options?.maxApprove,
+            });
         }
         const baseLimit = this._getSlippageBaseAmount(side, utils.big(summary.outputSize), slippagePercent);
 
         return this._openPosition(
-            this._getAmmAddress(amm),
+            amm,
             side === types.Side.BUY ? 0 : 1,
             utils.toWeiStr(margin),
             utils.toWeiStr(leverage),
@@ -95,18 +137,21 @@ export class SDK {
             reduceOnly?: boolean;
         },
         options?: { maxApprove?: boolean; skipChecks?: boolean },
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
         const { amm, side, price, margin, leverage, reduceOnly } = params;
 
-        this._checkWallet();
         this._checkAmm(amm);
+        this._checkWallet();
+        const network = utils.getNetworkFromAmmName(amm);
         if (!options?.skipChecks && !reduceOnly) {
-            await this._checkBalance(utils.big(margin));
-            await this._checkAllowance(utils.big(margin), options?.maxApprove);
+            await this._checkBalance({ amount: utils.big(margin), network });
+            await this._checkAllowance({ amount: utils.big(margin), network, maxApprove: options?.maxApprove });
         }
         const trader = await this._getAddress();
-        return this._ch.createLimitOrder(
+
+        const ch = this._getClearingHouseInstance(network);
+        return ch.createLimitOrder(
             {
                 trader,
                 amm: this._getAmmAddress(amm),
@@ -136,14 +181,17 @@ export class SDK {
             size: number;
             type: types.TriggerType;
         },
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
         const { amm, price, size, type } = params;
 
         this._checkWallet();
         this._checkAmm(amm);
         const trader = await this._getAddress();
-        return this._ch.createTriggerOrder(
+
+        const network = utils.getNetworkFromAmmName(amm);
+        const ch = this._getClearingHouseInstance(network);
+        return ch.createTriggerOrder(
             {
                 trader,
                 amm: this._getAmmAddress(amm),
@@ -168,8 +216,8 @@ export class SDK {
             closePercent?: number;
             slippagePercent?: number;
         },
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
         const { amm, closePercent: _closePercent, slippagePercent } = params;
 
         this._checkWallet();
@@ -192,7 +240,7 @@ export class SDK {
         );
 
         return this._closePosition(
-            this._getAmmAddress(amm),
+            amm,
             utils.toWeiStr(utils.big(size).mul(closePercent).div(100).abs()),
             utils.toWeiStr(quoteAssetAmountLimit),
             overrides,
@@ -212,27 +260,32 @@ export class SDK {
      * @returns tx
      */
     public async updateLimitOrder(
-        id: number,
         params: {
+            id: number;
             amm: types.Amm;
-            side: types.Side;
-            price: number;
-            margin: number;
-            leverage: number;
-            reduceOnly?: boolean;
+            order: {
+                side: types.Side;
+                price: number;
+                margin: number;
+                leverage: number;
+                reduceOnly?: boolean;
+            };
         },
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
-        const { amm, side, price, margin, leverage, reduceOnly } = params;
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
+        const { side, price, margin, leverage, reduceOnly } = params.order;
 
         this._checkWallet();
-        this._checkAmm(amm);
+        this._checkAmm(params.amm);
         const trader = await this._getAddress();
-        return this._ch.updateLimitOrder(
-            id,
+
+        const network = utils.getNetworkFromAmmName(params.amm);
+        const ch = this._getClearingHouseInstance(network);
+        return ch.updateLimitOrder(
+            params.id,
             {
                 trader,
-                amm: this._getAmmAddress(amm),
+                amm: this._getAmmAddress(params.amm),
                 side: side === types.Side.BUY ? 0 : 1,
                 trigger: utils.toWeiStr(price),
                 quoteAmount: utils.toWeiStr(margin),
@@ -246,14 +299,19 @@ export class SDK {
     /**
      * Delete a limit order
      * @param id order id
+     * @param amm amm eg bayc
      * @returns tx
      */
     public async deleteLimitOrder(
-        id: number,
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+        params: { id: number; amm: types.Amm },
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
+        this._checkAmm(params.amm);
         this._checkWallet();
-        return this._ch.deleteLimitOrder(id, overrides);
+
+        const network = utils.getNetworkFromAmmName(params.amm);
+        const ch = this._getClearingHouseInstance(network);
+        return ch.deleteLimitOrder(params.id, overrides);
     }
 
     /**
@@ -262,11 +320,15 @@ export class SDK {
      * @returns tx
      */
     public async deleteTriggerOrder(
-        id: number,
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+        params: { id: number; amm: types.Amm },
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
+        this._checkAmm(params.amm);
         this._checkWallet();
-        return this._ch.deleteTriggerOrder(id, overrides);
+
+        const network = utils.getNetworkFromAmmName(params.amm);
+        const ch = this._getClearingHouseInstance(network);
+        return ch.deleteTriggerOrder(params.id, overrides);
     }
 
     /**
@@ -277,27 +339,32 @@ export class SDK {
     public async createLimitOrderBatch(
         params: {
             amm: types.Amm;
-            side: types.Side;
-            price: number;
-            margin: number;
-            leverage: number;
-            reduceOnly?: boolean;
-        }[],
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+            orders: {
+                side: types.Side;
+                price: number;
+                margin: number;
+                leverage: number;
+                reduceOnly?: boolean;
+            }[];
+        },
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
         this._checkWallet();
-        params.map((p) => this._checkAmm(p.amm));
+        this._checkAmm(params.amm);
+        if (!params.orders.length) throw "no orders specified";
         const trader = await this._getAddress();
 
-        return this._ch.createLimitOrderBatch(
-            params.map((p) => ({
+        const network = utils.getNetworkFromAmmName(params.amm);
+        const ch = this._getClearingHouseInstance(network);
+        return ch.createLimitOrderBatch(
+            params.orders.map((o) => ({
                 trader,
-                amm: this._getAmmAddress(p.amm),
-                side: p.side === types.Side.BUY ? 0 : 1,
-                trigger: utils.toWeiStr(p.price),
-                quoteAmount: utils.toWeiStr(p.margin),
-                leverage: utils.toWeiStr(p.leverage),
-                reduceOnly: !!p.reduceOnly,
+                amm: this._getAmmAddress(params.amm),
+                side: o.side === types.Side.BUY ? 0 : 1,
+                trigger: utils.toWeiStr(o.price),
+                quoteAmount: utils.toWeiStr(o.margin),
+                leverage: utils.toWeiStr(o.leverage),
+                reduceOnly: !!o.reduceOnly,
             })),
             overrides,
         );
@@ -309,11 +376,15 @@ export class SDK {
      * @returns tx
      */
     public async deleteLimitOrderBatch(
-        ids: number[],
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+        params: { amm: types.Amm; ids: number[] },
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
+        this._checkAmm(params.amm);
         this._checkWallet();
-        return this._ch.deleteLimitOrderBatch(ids, overrides);
+
+        const network = utils.getNetworkFromAmmName(params.amm);
+        const ch = this._getClearingHouseInstance(network);
+        return ch.deleteLimitOrderBatch(params.ids, overrides);
     }
 
     /**
@@ -323,31 +394,35 @@ export class SDK {
      * @returns tx
      */
     public async updateLimitOrderBatch(
-        ids: number[],
         params: {
             amm: types.Amm;
-            side: types.Side;
-            price: number;
-            margin: number;
-            leverage: number;
-            reduceOnly?: boolean;
-        }[],
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+            ids: number[];
+            orders: {
+                side: types.Side;
+                price: number;
+                margin: number;
+                leverage: number;
+                reduceOnly?: boolean;
+            }[];
+        },
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
+        this._checkAmm(params.amm);
         this._checkWallet();
-        params.map((p) => this._checkAmm(p.amm));
         const trader = await this._getAddress();
 
-        return this._ch.updateLimitOrderBatch(
-            ids,
-            params.map((p) => ({
+        const network = utils.getNetworkFromAmmName(params.amm);
+        const ch = this._getClearingHouseInstance(network);
+        return ch.updateLimitOrderBatch(
+            params.ids,
+            params.orders.map((o) => ({
                 trader,
-                amm: this._getAmmAddress(p.amm),
-                side: p.side === types.Side.BUY ? 0 : 1,
-                trigger: utils.toWeiStr(p.price),
-                quoteAmount: utils.toWeiStr(p.margin),
-                leverage: utils.toWeiStr(p.leverage),
-                reduceOnly: !!p.reduceOnly,
+                amm: this._getAmmAddress(params.amm),
+                side: o.side === types.Side.BUY ? 0 : 1,
+                trigger: utils.toWeiStr(o.price),
+                quoteAmount: utils.toWeiStr(o.margin),
+                leverage: utils.toWeiStr(o.leverage),
+                reduceOnly: !!o.reduceOnly,
             })),
             overrides,
         );
@@ -362,20 +437,22 @@ export class SDK {
      */
     public async addMargin(
         params: { amm: types.Amm; amount: number },
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
         const { amm, amount } = params;
 
-        this._checkWallet();
         this._checkAmm(amm);
+        this._checkWallet();
         const { size } = await this.getPosition(amm);
         if (utils.big(size).eq(0)) {
             throw new Error("no position found");
         }
-        await this._checkBalance(utils.big(amount));
-        await this._checkAllowance(utils.big(amount));
 
-        return this._addMargin(this._getAmmAddress(amm), utils.toWeiStr(amount), overrides);
+        const network = utils.getNetworkFromAmmName(amm);
+        await this._checkBalance({ amount: utils.big(amount), network });
+        await this._checkAllowance({ amount: utils.big(amount), network });
+
+        return this._addMargin(amm, utils.toWeiStr(amount), overrides);
     }
 
     /**
@@ -387,8 +464,8 @@ export class SDK {
      */
     public async removeMargin(
         params: { amm: types.Amm; amount: number },
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
         const { amm, amount } = params;
 
         this._checkWallet();
@@ -402,18 +479,19 @@ export class SDK {
             throw new Error("remove amount beyond free collateral");
         }
 
-        return this._removeMargin(this._getAmmAddress(amm), utils.toWeiStr(amount), overrides);
+        return this._removeMargin(amm, utils.toWeiStr(amount), overrides);
     }
 
     public async approve(params: {
+        network: types.Network;
         amount?: number | string;
         max?: boolean;
-    }): Promise<ethers.ContractTransactionResponse> {
-        const { amount, max } = params;
+    }): Promise<web3.ContractTransactionResponse> {
+        const { network, amount, max } = params;
         if (!amount && !max) {
             throw new Error("specify either amount or max option");
         }
-        return this._approve(utils.toWeiStr(amount || 0), !!max);
+        return this._approve({ amount: utils.toWeiStr(amount || 0), network, maxApprove: !!max });
     }
 
     /**
@@ -693,15 +771,15 @@ export class SDK {
      * @returns Amms
      */
     public getSupportedAmms(): (keyof typeof types.Amm)[] {
-        return Object.keys(config.contracts.amms) as (keyof typeof types.Amm)[];
+        return Object.keys(config.info.contracts.amms) as (keyof typeof types.Amm)[];
     }
 
     /**
      * Get contract addresses
      * @returns Amms
      */
-    public getContracts(): typeof config.contracts {
-        return config.contracts;
+    public getContracts(): typeof config.info.contracts {
+        return config.info.contracts;
     }
 
     //
@@ -741,16 +819,18 @@ export class SDK {
      * get balance of quote token
      * @returns balance in `eth`
      */
-    private async _getBalance(): Promise<Big> {
-        return utils.fromWei(await this._weth.balanceOf(await this._getAddress()));
+    private async _getBalance(network: types.Network): Promise<Big> {
+        const weth = this._getWethInstance(network);
+        return utils.fromWei(await weth.balanceOf(await this._getAddress()));
     }
 
     /**
      * throws if balance below amount
      * @requires amount in `eth`
      */
-    private async _checkBalance(amount: Big): Promise<void> {
-        const balance = await this._getBalance();
+    private async _checkBalance(params: { amount: Big; network: types.Network }): Promise<void> {
+        const { amount, network } = params;
+        const balance = await this._getBalance(network);
         if (balance.lt(amount)) {
             throw new Error(`insufficient balance, required: ${utils.stringify(amount)}`);
         }
@@ -760,18 +840,26 @@ export class SDK {
      * allowance of quote token on clearing house
      * @returns allowance in `eth`
      */
-    private async _getAllowance(): Promise<Big> {
-        return utils.fromWei(await this._weth.allowance(await this._getAddress(), await this._ch.getAddress()));
+    private async _getAllowance(network: types.Network): Promise<Big> {
+        const weth = this._getWethInstance(network);
+        const ch = this._getClearingHouseInstance(network);
+        return utils.fromWei(await weth.allowance(await this._getAddress(), await ch.getAddress()));
     }
 
     /**
      * approves if allowance less than amount
      * @requires amount in `eth`
      */
-    private async _checkAllowance(amount: Big, maxApprove = true): Promise<void> {
-        const allowance = await this._getAllowance();
+    private async _checkAllowance(params: {
+        amount: Big;
+        network: types.Network;
+        maxApprove?: boolean;
+    }): Promise<void> {
+        const { amount, network, maxApprove: _maxApprove } = params;
+        const maxApprove = typeof _maxApprove === `undefined` ? true : _maxApprove;
+        const allowance = await this._getAllowance(network);
         if (allowance.lt(amount)) {
-            await this._approve(utils.toWeiStr(amount), maxApprove);
+            await this._approve({ amount: utils.toWeiStr(amount), network, maxApprove });
         }
     }
 
@@ -779,8 +867,15 @@ export class SDK {
      * sets approval on clearing house
      * @returns tx
      */
-    private async _approve(amount: string, maxApprove: boolean): Promise<ethers.ContractTransactionResponse> {
-        const tx = await this._weth.approve(await this._ch.getAddress(), maxApprove ? ethers.MaxUint256 : amount);
+    private async _approve(params: {
+        amount: string;
+        network: types.Network;
+        maxApprove: boolean;
+    }): Promise<web3.ContractTransactionResponse> {
+        const { amount, network, maxApprove } = params;
+        const weth = this._getWethInstance(network);
+        const ch = this._getClearingHouseInstance(network);
+        const tx = await weth.approve(await ch.getAddress(), maxApprove ? web3.MaxUint256 : amount);
         return tx;
     }
 
@@ -789,14 +884,17 @@ export class SDK {
      * @returns tx
      */
     private async _openPosition(
-        amm: string,
+        amm: types.Amm,
         side: number,
         margin: string,
         leverage: string,
         baseLimit: string,
-        overrides: ethers.ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
-        return this._ch.openPosition(amm, side, margin, leverage, baseLimit, overrides);
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
+        const network = utils.getNetworkFromAmmName(amm);
+        const ch = this._getClearingHouseInstance(network);
+        const ammAddress = this._getAmmAddress(amm);
+        return ch.openPosition(ammAddress, side, margin, leverage, baseLimit, overrides);
     }
 
     /**
@@ -804,12 +902,15 @@ export class SDK {
      * @returns hash
      */
     private async _closePosition(
-        amm: string,
+        amm: types.Amm,
         size: string,
         quoteLimit: string,
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
-        return this._ch.closePosition(amm, size, quoteLimit, overrides);
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
+        const network = utils.getNetworkFromAmmName(amm);
+        const ch = this._getClearingHouseInstance(network);
+        const ammAddress = this._getAmmAddress(amm);
+        return ch.closePosition(ammAddress, size, quoteLimit, overrides);
     }
 
     /**
@@ -817,11 +918,14 @@ export class SDK {
      * @returns tx
      */
     private async _addMargin(
-        amm: string,
+        amm: types.Amm,
         marginToAdd: string,
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
-        return this._ch.addMargin(amm, marginToAdd, overrides);
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
+        const network = utils.getNetworkFromAmmName(amm);
+        const ch = this._getClearingHouseInstance(network);
+        const ammAddress = this._getAmmAddress(amm);
+        return ch.addMargin(ammAddress, marginToAdd, overrides);
     }
 
     /**
@@ -829,26 +933,31 @@ export class SDK {
      * @returns tx
      */
     private async _removeMargin(
-        amm: string,
+        amm: types.Amm,
         marginToRemove: string,
-        overrides: ethers.Overrides = {},
-    ): Promise<ethers.ContractTransactionResponse> {
-        return this._ch.removeMargin(amm, marginToRemove, overrides);
+        overrides: web3.Overrides = {},
+    ): Promise<web3.ContractTransactionResponse> {
+        const network = utils.getNetworkFromAmmName(amm);
+        const ch = this._getClearingHouseInstance(network);
+        const ammAddress = this._getAmmAddress(amm);
+        return ch.removeMargin(ammAddress, marginToRemove, overrides);
     }
 
     /**
      * get amm address
      */
     private _getAmmAddress(amm: types.Amm): string {
-        return config.contracts.amms[amm];
+        return config.info.contracts.amms[amm];
     }
 
     /**
      * validate rpc and instance match
      */
-    private async _validateRpcNetwork(provider: ethers.Provider) {
+    private async _validateRpcNetwork(params: { network: types.Network; rpcUrl?: string }) {
+        const { network, rpcUrl } = params;
+        const provider = web3.getProvider({ network, rpcUrl });
         const { chainId } = await provider.getNetwork();
-        if (Number(chainId) !== config.chainId) {
+        if (Number(chainId) !== utils.getChainId(network)) {
             throw new Error("provider rpc and instance do not match");
         }
     }
@@ -878,6 +987,42 @@ export class SDK {
     private _checkWallet() {
         if (!this.wallet) {
             throw new Error(`sdk initialized as read-only, as private key is not provided`);
+        }
+    }
+
+    /**
+     * get contract instance
+     */
+    private _getClearingHouseInstance(network: types.Network): types.ClearingHouse {
+        switch (network) {
+            case "blast":
+                return this.clearingHouse;
+            default:
+                return this.clearingHouse_blast;
+        }
+    }
+
+    /**
+     * get contract instance
+     */
+    private _getInsuranceFundInstance(network: types.Network): types.InsuranceFund {
+        switch (network) {
+            case "blast":
+                return this.insuranceFund;
+            default:
+                return this.insuranceFund_blast;
+        }
+    }
+
+    /**
+     * get contract instance
+     */
+    private _getWethInstance(network: types.Network): types.ERC20 {
+        switch (network) {
+            case "blast":
+                return this.weth;
+            default:
+                return this.weth_blast;
         }
     }
 }

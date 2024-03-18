@@ -27,11 +27,6 @@
     },
     {
         "inputs": [],
-        "name": "AlreadyInitialized",
-        "type": "error"
-    },
-    {
-        "inputs": [],
         "name": "DepositMoreThanMax",
         "type": "error"
     },
@@ -43,11 +38,6 @@
     {
         "inputs": [],
         "name": "INSUFFICIENT_FUNDS",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "INSURANCE_CAP_REACHED",
         "type": "error"
     },
     {
@@ -141,11 +131,6 @@
         "type": "error"
     },
     {
-        "inputs": [],
-        "name": "ZERO_MINT",
-        "type": "error"
-    },
-    {
         "anonymous": false,
         "inputs": [],
         "name": "Activated",
@@ -181,7 +166,7 @@
         "inputs": [
             {
                 "indexed": true,
-                "internalType": "contract IRouter",
+                "internalType": "contract IAMM",
                 "name": "amm",
                 "type": "address"
             },
@@ -200,7 +185,7 @@
         "inputs": [
             {
                 "indexed": true,
-                "internalType": "contract IRouter",
+                "internalType": "contract IAMM",
                 "name": "amm",
                 "type": "address"
             },
@@ -327,7 +312,7 @@
         "inputs": [
             {
                 "indexed": true,
-                "internalType": "contract IRouter",
+                "internalType": "contract IAMM",
                 "name": "amm",
                 "type": "address"
             },
@@ -539,7 +524,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IRouter",
+                "internalType": "contract IAMM",
                 "name": "amm",
                 "type": "address"
             },
@@ -634,6 +619,30 @@
     {
         "inputs": [
             {
+                "internalType": "address",
+                "name": "spender",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "difference",
+                "type": "uint256"
+            }
+        ],
+        "name": "decreaseAllowance",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "assets",
                 "type": "uint256"
@@ -671,7 +680,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IRouter",
+                "internalType": "contract IAMM",
                 "name": "amm",
                 "type": "address"
             }
@@ -685,6 +694,30 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "spender",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "difference",
+                "type": "uint256"
+            }
+        ],
+        "name": "increaseAllowance",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -901,9 +934,22 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "ownershipHandoverValidFor",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
-                "internalType": "contract IRouter",
+                "internalType": "contract IAMM",
                 "name": "amm",
                 "type": "address"
             },
@@ -1147,7 +1193,7 @@
     {
         "inputs": [
             {
-                "internalType": "contract IRouter",
+                "internalType": "contract IAMM",
                 "name": "amm",
                 "type": "address"
             },

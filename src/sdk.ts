@@ -996,9 +996,9 @@ export class SDK {
     private _getClearingHouseInstance(network: types.Network): types.ClearingHouse {
         switch (network) {
             case "blast":
-                return this.clearingHouse;
-            default:
                 return this.clearingHouse_blast;
+            default:
+                return this.clearingHouse;
         }
     }
 
@@ -1008,9 +1008,9 @@ export class SDK {
     private _getInsuranceFundInstance(network: types.Network): types.InsuranceFund {
         switch (network) {
             case "blast":
-                return this.insuranceFund;
-            default:
                 return this.insuranceFund_blast;
+            default:
+                return this.insuranceFund;
         }
     }
 
@@ -1020,9 +1020,9 @@ export class SDK {
     private _getWethInstance(network: types.Network): types.ERC20 {
         switch (network) {
             case "blast":
-                return this.weth;
-            default:
                 return this.weth_blast;
+            default:
+                return this.weth;
         }
     }
 }

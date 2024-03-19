@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.1.0](https://github.com/nftperp/nftperp-sdk/compare/v8.0.0...v8.1.0) (2024-03-19)
+
+### Bug Fixes
+
+-   **contract instance:** invalid network contract instance ([99ae63a](https://github.com/nftperp/nftperp-sdk/commit/99ae63a7273dc337662807f70028ca877c44cd07))
+
 ## [8.0.0](https://github.com/nftperp/nftperp-sdk/compare/v7.1.2...v8.0.0) (2024-03-18)
 
 ### Features
